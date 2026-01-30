@@ -1,8 +1,12 @@
 import { Response, NextFunction } from 'express';
 import { Query } from '../models/Query';
+import { Connection } from '../models/Connection';
+import { ExecutionHistory, ExecutionType, ExecutionStatus } from '../models/ExecutionHistory';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { Op } from 'sequelize';
+import { QueryExecutor } from '../services/queryExecutor';
+import { ExportUtils } from '../utils/exportUtils';
 
 export const getQueries = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -27,7 +31,26 @@ export const getQueries = async (req: AuthRequest, res: Response, next: NextFunc
       ];
     }
 
-    const queries = await Query.findAll({ where, order: [['updated_at', 'DESC']] });
+    const queries = await Query.findAll({ 
+      where, 
+      order: [['updated_at', 'DESC']],
+      include: [
+        {
+          model: ExecutionHistory,
+          as: 'executions',
+          attributes: []
+        }
+      ],
+      attributes: {
+        include: [
+          [
+            Query.sequelize!.fn('COUNT', Query.sequelize!.col('executions.id')),
+            'execution_count'
+          ]
+        ]
+      },
+      group: ['Query.id']
+    });
 
     res.json({
       success: true,
@@ -122,19 +145,91 @@ export const deleteQuery = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
-export const executeQuery = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+export const executeQuery = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const executionStartTime = Date.now();
+  let executionHistory: ExecutionHistory | null = null;
+
   try {
-    // TODO: Implement query execution logic
+    const { id } = req.params;
+    const { connection_id, parameters } = req.body;
+
+    if (!connection_id) {
+      throw new AppError('Connection ID is required', 400);
+    }
+
+    // Fetch query
+    const query = await Query.findByPk(id);
+    if (!query) {
+      throw new AppError('Query not found', 404);
+    }
+
+    // Check access permission
+    if (!query.is_public && query.created_by !== req.user.id) {
+      throw new AppError('Access denied', 403);
+    }
+
+    // Fetch connection
+    const connection = await Connection.findByPk(connection_id);
+    if (!connection) {
+      throw new AppError('Connection not found', 404);
+    }
+
+    // Create execution history record
+    executionHistory = await ExecutionHistory.create({
+      query_id: parseInt(id),
+      connection_id: connection_id,
+      executed_by: req.user.id,
+      execution_type: ExecutionType.MANUAL,
+      executed_at: new Date(),
+      status: ExecutionStatus.RUNNING,
+      parameters_used: parameters || {}
+    });
+
+    // Replace parameters in SQL if provided
+    let sqlToExecute = query.sql_content;
+    if (parameters) {
+      Object.keys(parameters).forEach(key => {
+        const regex = new RegExp(`@${key}`, 'g');
+        sqlToExecute = sqlToExecute.replace(regex, parameters[key]);
+      });
+    }
+
+    // Execute query
+    const result = await QueryExecutor.execute(connection, sqlToExecute);
+    
+    const executionTime = Date.now() - executionStartTime;
+
+    // Update execution history with success
+    await executionHistory.update({
+      status: ExecutionStatus.SUCCESS,
+      completed_at: new Date(),
+      execution_time_ms: executionTime,
+      rows_affected: result.rowsAffected
+    });
+
     res.json({
       success: true,
-      message: 'Query execution not yet implemented',
       data: {
-        rows: [],
-        rowsAffected: 0,
-        executionTime: 0
+        rows: result.rows,
+        rowsAffected: result.rowsAffected,
+        executionTime: executionTime,
+        fields: result.fields,
+        executionHistoryId: executionHistory.id
       }
     });
-  } catch (error) {
+  } catch (error: any) {
+    const executionTime = Date.now() - executionStartTime;
+
+    // Update execution history with failure
+    if (executionHistory) {
+      await executionHistory.update({
+        status: ExecutionStatus.FAILED,
+        completed_at: new Date(),
+        execution_time_ms: executionTime,
+        error_message: error.message
+      });
+    }
+
     next(error);
   }
 };
@@ -168,6 +263,77 @@ export const searchQueries = async (req: AuthRequest, res: Response, next: NextF
       success: true,
       data: queries
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const exportQueryResults = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { format = 'csv', connection_id, parameters } = req.body;
+
+    if (!connection_id) {
+      throw new AppError('Connection ID is required', 400);
+    }
+
+    if (!['csv', 'excel', 'json'].includes(format)) {
+      throw new AppError('Invalid export format. Use csv, excel, or json', 400);
+    }
+
+    // Fetch query
+    const query = await Query.findByPk(id);
+    if (!query) {
+      throw new AppError('Query not found', 404);
+    }
+
+    // Check access permission
+    if (!query.is_public && query.created_by !== req.user.id) {
+      throw new AppError('Access denied', 403);
+    }
+
+    // Fetch connection
+    const connection = await Connection.findByPk(connection_id);
+    if (!connection) {
+      throw new AppError('Connection not found', 404);
+    }
+
+    // Replace parameters in SQL if provided
+    let sqlToExecute = query.sql_content;
+    if (parameters) {
+      Object.keys(parameters).forEach(key => {
+        const regex = new RegExp(`@${key}`, 'g');
+        sqlToExecute = sqlToExecute.replace(regex, parameters[key]);
+      });
+    }
+
+    // Execute query
+    const result = await QueryExecutor.execute(connection, sqlToExecute);
+
+    // Generate export file
+    let fileContent: Buffer | string;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `${query.name.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.${ExportUtils.getFileExtension(format as any)}`;
+
+    switch (format) {
+      case 'csv':
+        fileContent = ExportUtils.toCSV(result.rows);
+        break;
+      case 'excel':
+        fileContent = await ExportUtils.toExcel(result.rows, query.name);
+        break;
+      case 'json':
+        fileContent = ExportUtils.toJSON(result.rows);
+        break;
+      default:
+        throw new AppError('Invalid format', 400);
+    }
+
+    // Set response headers
+    res.setHeader('Content-Type', ExportUtils.getContentType(format as any));
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    
+    res.send(fileContent);
   } catch (error) {
     next(error);
   }

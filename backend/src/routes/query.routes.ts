@@ -7,7 +7,8 @@ import {
   updateQuery,
   deleteQuery,
   executeQuery,
-  searchQueries
+  searchQueries,
+  exportQueryResults
 } from '../controllers/query.controller';
 
 const router = Router();
@@ -21,5 +22,6 @@ router.post('/', authorize('admin', 'developer', 'analyst'), createQuery);
 router.put('/:id', authorize('admin', 'developer', 'analyst'), updateQuery);
 router.delete('/:id', authorize('admin', 'developer'), deleteQuery);
 router.post('/:id/execute', executeQuery);
+router.post('/:id/export', exportQueryResults);
 
 export default router;

@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Editor from '@monaco-editor/react';
 import apiClient from '../lib/api';
+
+interface Connection {
+  id: number;
+  name: string;
+  type: string;
+  environment: string;
+}
 
 export default function QueryEditor() {
   const navigate = useNavigate();
@@ -8,6 +16,8 @@ export default function QueryEditor() {
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState<any>(null);
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -21,10 +31,23 @@ export default function QueryEditor() {
   });
 
   useEffect(() => {
+    fetchConnections();
     if (id) {
       fetchQuery();
     }
   }, [id]);
+
+  const fetchConnections = async () => {
+    try {
+      const response = await apiClient.get('/connections');
+      setConnections(response.data.data);
+      if (response.data.data.length > 0) {
+        setSelectedConnectionId(response.data.data[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to fetch connections:', error);
+    }
+  };
 
   const fetchQuery = async () => {
     try {
@@ -60,12 +83,17 @@ export default function QueryEditor() {
       return;
     }
 
+    if (!selectedConnectionId) {
+      alert('Please select a connection');
+      return;
+    }
+
     setExecuting(true);
     setExecutionResult(null);
 
     try {
       const response = await apiClient.post(`/queries/${id}/execute`, {
-        connection_id: 1 // TODO: Let user select connection
+        connection_id: selectedConnectionId
       });
       setExecutionResult({
         success: true,
@@ -169,14 +197,27 @@ export default function QueryEditor() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             SQL Content *
           </label>
-          <textarea
-            required
-            value={formData.sql_content}
-            onChange={(e) => setFormData({ ...formData, sql_content: e.target.value })}
-            rows={12}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-            placeholder="SELECT * FROM table WHERE ..."
-          />
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <Editor
+              height="400px"
+              language="sql"
+              value={formData.sql_content}
+              onChange={(value) => setFormData({ ...formData, sql_content: value || '' })}
+              theme="vs-light"
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                wordWrap: 'on',
+                tabSize: 2,
+                formatOnPaste: true,
+                formatOnType: true
+              }}
+            />
+          </div>
+          <p className="mt-1 text-xs text-gray-500">Use Ctrl+Space for autocomplete, Ctrl+F to find</p>
         </div>
 
         <div className="space-y-3">
@@ -211,7 +252,39 @@ export default function QueryEditor() {
           </label>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        {id && connections.length > 0 && (
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Execute Query</h3>
+            <div className="flex gap-3 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Connection
+                </label>
+                <select
+                  value={selectedConnectionId || ''}
+                  onChange={(e) => setSelectedConnectionId(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {connections.map((conn) => (
+                    <option key={conn.id} value={conn.id}>
+                      {conn.name} ({conn.type} - {conn.environment})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={handleExecute}
+                disabled={executing}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {executing ? 'Executing...' : '▶ Execute'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-4 border-t">
           <button
             type="submit"
             disabled={loading}
@@ -219,16 +292,6 @@ export default function QueryEditor() {
           >
             {loading ? 'Saving...' : id ? 'Update Query' : 'Create Query'}
           </button>
-          {id && (
-            <button
-              type="button"
-              onClick={handleExecute}
-              disabled={executing}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {executing ? 'Executing...' : '▶ Execute'}
-            </button>
-          )}
           <button
             type="button"
             onClick={() => navigate('/queries')}
@@ -241,14 +304,55 @@ export default function QueryEditor() {
 
       {executionResult && (
         <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {executionResult.success ? '✓ Execution Results' : '✗ Execution Error'}
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">
+              {executionResult.success ? '✓ Execution Results' : '✗ Execution Error'}
+            </h3>
+            {executionResult.success && executionResult.data.data && (
+              <div className="text-sm text-gray-600">
+                {executionResult.data.data.rows.length} rows • {executionResult.data.data.executionTime}ms
+              </div>
+            )}
+          </div>
           {executionResult.success ? (
-            <div className="bg-gray-50 p-4 rounded border border-gray-200">
-              <pre className="text-sm overflow-auto">
-                {JSON.stringify(executionResult.data, null, 2)}
-              </pre>
+            <div>
+              {executionResult.data.data.rows.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {Object.keys(executionResult.data.data.rows[0]).map((key) => (
+                          <th
+                            key={key}
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            {key}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {executionResult.data.data.rows.map((row: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          {Object.values(row).map((value: any, cellIdx: number) => (
+                            <td key={cellIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {value !== null && value !== undefined ? String(value) : <span className="text-gray-400 italic">null</span>}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-4 rounded border border-gray-200 text-center text-gray-500">
+                  Query executed successfully but returned no rows
+                </div>
+              )}
+              <div className="mt-4 flex gap-4 text-sm text-gray-600">
+                <span>Rows affected: <strong>{executionResult.data.data.rowsAffected}</strong></span>
+                <span>Execution time: <strong>{executionResult.data.data.executionTime}ms</strong></span>
+              </div>
             </div>
           ) : (
             <div className="bg-red-50 p-4 rounded border border-red-200 text-red-700">
