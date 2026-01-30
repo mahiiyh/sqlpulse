@@ -16,8 +16,8 @@ interface Connection {
 export default function Connections() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [showForm, setShowForm] = useState(false);  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');  const [formData, setFormData] = useState({
     name: '',
     type: 'postgresql',
     host: '',
@@ -90,6 +90,27 @@ export default function Connections() {
         >
           {showForm ? 'Cancel' : '+ New Connection'}
         </button>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="flex gap-4">
+        <input
+          type="text"
+          placeholder="Search connections..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">All Types</option>
+          <option value="postgresql">PostgreSQL</option>
+          <option value="mysql">MySQL</option>
+          <option value="sqlserver">SQL Server</option>
+        </select>
       </div>
 
       {/* Create Form */}
@@ -215,19 +236,31 @@ export default function Connections() {
       {/* Connections List */}
       {loading ? (
         <div className="text-center py-12">Loading connections...</div>
-      ) : connections.length === 0 ? (
+      ) : connections.filter(conn => 
+          (filterType === 'all' || conn.type === filterType) &&
+          (searchTerm === '' || conn.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           conn.host.toLowerCase().includes(searchTerm.toLowerCase()))
+        ).length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <div className="text-gray-500 mb-4">No connections yet</div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Create your first connection
-          </button>
+          <div className="text-gray-500 mb-4">
+            {connections.length === 0 ? 'No connections yet' : 'No matching connections'}
+          </div>
+          {connections.length === 0 && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Create your first connection
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {connections.map((conn) => (
+          {connections.filter(conn => 
+            (filterType === 'all' || conn.type === filterType) &&
+            (searchTerm === '' || conn.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+             conn.host.toLowerCase().includes(searchTerm.toLowerCase()))
+          ).map((conn) => (
             <div key={conn.id} className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-start mb-3">
                 <div>

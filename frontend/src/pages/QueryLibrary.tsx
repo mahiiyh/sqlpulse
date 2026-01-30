@@ -35,6 +35,18 @@ export default function QueryLibrary() {
     }
   };
 
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+    
+    try {
+      await apiClient.delete(`/queries/${id}`);
+      setQueries(queries.filter(q => q.id !== id));
+    } catch (error) {
+      console.error('Failed to delete query:', error);
+      alert('Failed to delete query');
+    }
+  };
+
   const filteredQueries = queries.filter(q =>
     q.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     q.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -122,16 +134,22 @@ export default function QueryLibrary() {
               <div className="flex gap-2">
                 <Link
                   to={`/queries/${query.id}`}
-                  className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 text-center"
+                  className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm text-center"
                 >
                   View
                 </Link>
                 <Link
-                  to={`/queries/${query.id}/edit`}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-center"
+                  to={`/queries/${query.id}`}
+                  className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm text-center"
                 >
                   Edit
                 </Link>
+                <button
+                  onClick={() => handleDelete(query.id, query.name)}
+                  className="px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors text-sm"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}

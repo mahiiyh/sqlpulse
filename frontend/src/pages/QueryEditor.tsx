@@ -6,6 +6,8 @@ export default function QueryEditor() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [executionResult, setExecutionResult] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -49,6 +51,33 @@ export default function QueryEditor() {
       alert('Failed to save query');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExecute = async () => {
+    if (!id) {
+      alert('Please save the query before executing');
+      return;
+    }
+
+    setExecuting(true);
+    setExecutionResult(null);
+
+    try {
+      const response = await apiClient.post(`/queries/${id}/execute`, {
+        connection_id: 1 // TODO: Let user select connection
+      });
+      setExecutionResult({
+        success: true,
+        data: response.data
+      });
+    } catch (error: any) {
+      setExecutionResult({
+        success: false,
+        error: error.response?.data?.message || 'Execution failed'
+      });
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -190,6 +219,16 @@ export default function QueryEditor() {
           >
             {loading ? 'Saving...' : id ? 'Update Query' : 'Create Query'}
           </button>
+          {id && (
+            <button
+              type="button"
+              onClick={handleExecute}
+              disabled={executing}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              {executing ? 'Executing...' : '▶ Execute'}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => navigate('/queries')}
@@ -199,6 +238,25 @@ export default function QueryEditor() {
           </button>
         </div>
       </form>
+
+      {executionResult && (
+        <div className="mt-6 bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            {executionResult.success ? '✓ Execution Results' : '✗ Execution Error'}
+          </h3>
+          {executionResult.success ? (
+            <div className="bg-gray-50 p-4 rounded border border-gray-200">
+              <pre className="text-sm overflow-auto">
+                {JSON.stringify(executionResult.data, null, 2)}
+              </pre>
+            </div>
+          ) : (
+            <div className="bg-red-50 p-4 rounded border border-red-200 text-red-700">
+              {executionResult.error}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
