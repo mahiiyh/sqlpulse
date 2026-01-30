@@ -1,0 +1,34 @@
+{
+  "name": "sql-query-dashboard",
+  "version": "1.0.0",
+  "description": "Universal SQL Query Management, Execution, and Automation Platform",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "scheduler"
+  ],
+  "scripts": {
+    "install-all": "npm install && npm install --workspace=frontend && npm install --workspace=backend && npm install --workspace=scheduler",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:scheduler\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:scheduler": "npm run dev --workspace=scheduler",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend && npm run build --workspace=scheduler",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:scheduler": "npm run build --workspace=scheduler",
+    "start": "npm run start --workspace=backend",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "db:migrate": "npm run migrate --workspace=backend",
+    "db:seed": "npm run seed --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

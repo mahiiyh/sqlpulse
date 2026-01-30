@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: sqlquery-postgres
+    environment:
+      POSTGRES_DB: sqlquery_db
+      POSTGRES_USER: sqlquery_user
+      POSTGRES_PASSWORD: sqlquery_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - sqlquery-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sqlquery_user -d sqlquery_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: sqlquery-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sqlquery-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sqlquery-backend
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://sqlquery_user:sqlquery_pass@postgres:5432/sqlquery_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 7d
+      ENCRYPTION_KEY: your-32-character-encryption-key
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - query_results:/app/results
+    networks:
+      - sqlquery-network
+    command: npm run dev
+
+  scheduler:
+    build:
+      context: ./scheduler
+      dockerfile: Dockerfile
+    container_name: sqlquery-scheduler
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://sqlquery_user:sqlquery_pass@postgres:5432/sqlquery_db
+      REDIS_URL: redis://redis:6379
+      ENCRYPTION_KEY: your-32-character-encryption-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - ./scheduler:/app
+      - /app/node_modules
+      - query_results:/app/results
+    networks:
+      - sqlquery-network
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sqlquery-frontend
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - sqlquery-network
+    command: npm run dev
+
+  nginx:
+    image: nginx:alpine
+    container_name: sqlquery-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - sqlquery-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  query_results:
+
+networks:
+  sqlquery-network:
+    driver: bridge
