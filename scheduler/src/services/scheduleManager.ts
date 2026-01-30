@@ -1,6 +1,7 @@
 import { Queue } from 'bull';
 import { Sequelize, QueryTypes } from 'sequelize';
 import { logger } from '../utils/logger';
+import { DependencyChecker } from './dependencyChecker';
 
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://sqlquery_user:sqlquery_pass@localhost:5432/sqlquery_db';
 
@@ -17,6 +18,9 @@ interface Schedule {
   cron_expression?: string;
   next_run_time?: Date;
   is_enabled: boolean;
+  max_retries: number;
+  retry_delay_seconds: number;
+  exponential_backoff: boolean;
 }
 
 export class ScheduleManager {
@@ -44,7 +48,8 @@ export class ScheduleManager {
 
       // Query for due schedules
       const schedules = await this.sequelize.query<Schedule>(`
-        SELECT id, query_id, connection_id, schedule_name, next_run_time
+        SELECT id, query_id, connection_id, schedule_name, next_run_time,
+               max_retries, retry_delay_seconds, exponential_backoff
         FROM schedules
         WHERE is_enabled = true
         AND next_run_time <= :now
@@ -60,6 +65,14 @@ export class ScheduleManager {
       }
 
       for (const schedule of schedules || []) {
+        // Check dependencies before adding to queue
+        const dependencyCheck = await DependencyChecker.canExecute(schedule.id);
+        
+        if (!dependencyCheck.canExecute) {
+          logger.info(`Skipping schedule ${schedule.id} (${schedule.schedule_name}): ${dependencyCheck.reason}`);
+          continue;
+        }
+        
         await this.addJobToQueue(schedule);
       }
     } catch (error) {
@@ -69,14 +82,26 @@ export class ScheduleManager {
 
   private async addJobToQueue(schedule: Schedule) {
     try {
-      // Add job to Bull queue
+      // Calculate retry configuration
+      const attempts = schedule.max_retries + 1; // +1 for initial attempt
+      const backoffDelay = schedule.retry_delay_seconds * 1000; // Convert to ms
+      
+      // Add job to Bull queue with custom retry settings
       await this.queue.add({
         scheduleId: schedule.id,
         queryId: schedule.query_id,
         connectionId: schedule.connection_id,
-        scheduleName: schedule.schedule_name
+        scheduleName: schedule.schedule_name,
+        maxRetries: schedule.max_retries,
+        retryDelaySeconds: schedule.retry_delay_seconds,
+        exponentialBackoff: schedule.exponential_backoff
       }, {
-        jobId: `schedule-${schedule.id}-${Date.now()}`
+        jobId: `schedule-${schedule.id}-${Date.now()}`,
+        attempts: attempts,
+        backoff: schedule.exponential_backoff ? {
+          type: 'exponential',
+          delay: backoffDelay
+        } : backoffDelay
       });
 
       logger.info(`Added schedule ${schedule.id} (${schedule.schedule_name}) to queue`);

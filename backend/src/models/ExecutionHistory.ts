@@ -28,11 +28,12 @@ interface ExecutionHistoryAttributes {
   status: ExecutionStatus;
   error_message?: string;
   parameters_used?: object;
+  retry_attempt?: number;
   created_at?: Date;
   updated_at?: Date;
 }
 
-interface ExecutionHistoryCreationAttributes extends Optional<ExecutionHistoryAttributes, 'id' | 'created_at' | 'updated_at' | 'schedule_id' | 'executed_by' | 'completed_at' | 'execution_time_ms' | 'rows_affected' | 'error_message' | 'parameters_used'> {}
+interface ExecutionHistoryCreationAttributes extends Optional<ExecutionHistoryAttributes, 'id' | 'created_at' | 'updated_at' | 'schedule_id' | 'executed_by' | 'completed_at' | 'execution_time_ms' | 'rows_affected' | 'error_message' | 'parameters_used' | 'retry_attempt'> {}
 
 export class ExecutionHistory extends Model<ExecutionHistoryAttributes, ExecutionHistoryCreationAttributes> implements ExecutionHistoryAttributes {
   public id!: number;
@@ -48,6 +49,7 @@ export class ExecutionHistory extends Model<ExecutionHistoryAttributes, Executio
   public status!: ExecutionStatus;
   public error_message?: string;
   public parameters_used?: object;
+  public retry_attempt?: number;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -125,6 +127,11 @@ ExecutionHistory.init(
     parameters_used: {
       type: DataTypes.JSONB,
       allowNull: true
+    },
+    retry_attempt: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
     },
     created_at: {
       type: DataTypes.DATE,

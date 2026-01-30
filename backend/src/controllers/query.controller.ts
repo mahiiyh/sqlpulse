@@ -7,6 +7,7 @@ import { AuthRequest } from '../middleware/auth';
 import { Op } from 'sequelize';
 import { QueryExecutor } from '../services/queryExecutor';
 import { ExportUtils } from '../utils/exportUtils';
+import { QueryParameterProcessor } from '../utils/queryParameters';
 
 export const getQueries = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -187,6 +188,15 @@ export const executeQuery = async (req: AuthRequest, res: Response, next: NextFu
 
     // Replace parameters in SQL if provided
     let sqlToExecute = query.sql_content;
+    
+    // First process dynamic parameters (@TODAY, @YESTERDAY, etc.)
+    sqlToExecute = QueryParameterProcessor.processParameters(sqlToExecute, {
+      userId: req.user.id,
+      username: req.user.username,
+      userEmail: req.user.email
+    });
+    
+    // Then replace custom parameters if provided
     if (parameters) {
       Object.keys(parameters).forEach(key => {
         const regex = new RegExp(`@${key}`, 'g');

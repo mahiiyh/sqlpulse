@@ -3,6 +3,8 @@ import * as sql from 'mssql';
 import mysql from 'mysql2/promise';
 import { logger } from '../utils/logger';
 import CryptoJS from 'crypto-js';
+import { NotificationService, NotificationChannel } from './notificationService';
+import { QueryParameterProcessor } from '../utils/queryParameters';
 
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://sqlquery_user:sqlquery_pass@localhost:5432/sqlquery_db';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-me';
@@ -17,6 +19,9 @@ interface JobData {
   queryId: number;
   connectionId: number;
   scheduleName: string;
+  maxRetries?: number;
+  retryDelaySeconds?: number;
+  exponentialBackoff?: boolean;
 }
 
 interface QueryData {
@@ -33,34 +38,56 @@ interface ConnectionData {
   encrypted_password: string;
 }
 
+interface ScheduleData {
+  schedule_name: string;
+  notification_enabled: boolean;
+  notification_channel?: string;
+  notification_config?: any;
+  max_retries: number;
+  retry_delay_seconds: number;
+  exponential_backoff: boolean;
+}
+
 export class QueryExecutor {
+  private notificationService: NotificationService;
+
+  constructor() {
+    this.notificationService = new NotificationService(logger);
+  }
+
   private decrypt(encryptedText: string): string {
     const bytes = CryptoJS.AES.decrypt(encryptedText, ENCRYPTION_KEY);
     return bytes.toString(CryptoJS.enc.Utf8);
   }
 
-  async execute(jobData: JobData) {
+  async execute(jobData: JobData, attemptsMade: number = 0) {
     const startTime = Date.now();
-    const executionId = await this.createExecutionRecord(jobData);
+    const executionId = await this.createExecutionRecord(jobData, attemptsMade);
 
     try {
-      // Fetch query and connection details
+      // Fetch query, connection and schedule details
       const query = await this.getQuery(jobData.queryId);
       const connection = await this.getConnection(jobData.connectionId);
+      const schedule = await this.getSchedule(jobData.scheduleId);
 
       logger.info(`Executing query "${query.name}" on ${connection.type} database`);
+
+      // Process query parameters (@TODAY, @YESTERDAY, etc.)
+      const processedQuery = QueryParameterProcessor.processParameters(query.sql_content, {
+        username: 'scheduler'
+      });
 
       // Execute query based on database type
       let result;
       switch (connection.type) {
         case 'sqlserver':
-          result = await this.executeSqlServer(query.sql_content, connection);
+          result = await this.executeSqlServer(processedQuery, connection);
           break;
         case 'mysql':
-          result = await this.executeMySql(query.sql_content, connection);
+          result = await this.executeMySql(processedQuery, connection);
           break;
         case 'postgresql':
-          result = await this.executePostgreSQL(query.sql_content, connection);
+          result = await this.executePostgreSQL(processedQuery, connection);
           break;
         default:
           throw new Error(`Unsupported database type: ${connection.type}`);
@@ -73,6 +100,14 @@ export class QueryExecutor {
         status: 'success',
         executionTime,
         rowsAffected: result.rowsAffected
+      });
+
+      // Send success notification if enabled
+      await this.sendNotification(schedule, query, {
+        status: 'success',
+        executionTime,
+        rowsAffected: result.rowsAffected,
+        resultPreview: result.recordset
       });
 
       return {
@@ -92,6 +127,25 @@ export class QueryExecutor {
         executionTime,
         errorMessage: error.message
       });
+
+      // Fetch schedule for notification
+      const schedule = await this.getSchedule(jobData.scheduleId);
+      const query = await this.getQuery(jobData.queryId);
+
+      // Only send failure notification on final attempt
+      const maxRetries = jobData.maxRetries || 0;
+      const isFinalAttempt = attemptsMade >= maxRetries;
+      
+      if (isFinalAttempt) {
+        await this.sendNotification(schedule, query, {
+          status: 'failed',
+          executionTime,
+          errorMessage: error.message
+        });
+        logger.info(`Final retry attempt failed for schedule ${jobData.scheduleId}, notification sent`);
+      } else {
+        logger.info(`Retry attempt ${attemptsMade + 1}/${maxRetries + 1} failed for schedule ${jobData.scheduleId}`);
+      }
 
       throw error;
     }
@@ -123,16 +177,75 @@ export class QueryExecutor {
     return results;
   }
 
-  private async createExecutionRecord(jobData: JobData): Promise<number> {
+  private async getSchedule(scheduleId: number): Promise<ScheduleData> {
+    const [results] = await appSequelize.query<ScheduleData>(
+      'SELECT schedule_name, notification_enabled, notification_channel, notification_config, max_retries, retry_delay_seconds, exponential_backoff FROM schedules WHERE id = :scheduleId',
+      { replacements: { scheduleId }, type: QueryTypes.SELECT }
+    );
+    
+    if (!results) {
+      throw new Error(`Schedule ${scheduleId} not found`);
+    }
+    
+    return results;
+  }
+
+  private async sendNotification(
+    schedule: ScheduleData,
+    query: QueryData,
+    execution: { status: 'success' | 'failed'; executionTime: number; rowsAffected?: number; errorMessage?: string; resultPreview?: any }
+  ) {
+    if (!schedule.notification_enabled || !schedule.notification_channel || !schedule.notification_config) {
+      return;
+    }
+
+    try {
+      const config = {
+        ...schedule.notification_config,
+        channel: schedule.notification_channel as NotificationChannel,
+        enabled: schedule.notification_enabled
+      };
+
+      // Safely extract result preview
+      let resultPreview: any[] | undefined = undefined;
+      if (execution.resultPreview) {
+        if (Array.isArray(execution.resultPreview)) {
+          resultPreview = execution.resultPreview;
+        } else if (typeof execution.resultPreview === 'object') {
+          resultPreview = [execution.resultPreview];
+        }
+      }
+
+      const payload = {
+        scheduleId: 0, // Will be set by job data
+        scheduleName: schedule.schedule_name,
+        queryName: query.name,
+        executionStatus: execution.status,
+        executionTime: execution.executionTime,
+        rowsAffected: execution.rowsAffected,
+        errorMessage: execution.errorMessage,
+        executedAt: new Date(),
+        resultPreview: resultPreview
+      };
+
+      await this.notificationService.sendNotification(config, payload);
+    } catch (error: any) {
+      logger.error('Failed to send notification:', error);
+      // Don't throw - notification failure shouldn't fail the job
+    }
+  }
+
+  private async createExecutionRecord(jobData: JobData, attemptsMade: number = 0): Promise<number> {
     const [result] = await appSequelize.query(`
-      INSERT INTO execution_history (query_id, schedule_id, connection_id, execution_type, executed_at, status)
-      VALUES (:queryId, :scheduleId, :connectionId, 'scheduled', NOW(), 'running')
+      INSERT INTO execution_history (query_id, schedule_id, connection_id, execution_type, executed_at, status, retry_attempt)
+      VALUES (:queryId, :scheduleId, :connectionId, 'scheduled', NOW(), 'running', :retryAttempt)
       RETURNING id
     `, {
       replacements: {
         queryId: jobData.queryId,
         scheduleId: jobData.scheduleId,
-        connectionId: jobData.connectionId
+        connectionId: jobData.connectionId,
+        retryAttempt: attemptsMade
       }
     });
 

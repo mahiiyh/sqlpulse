@@ -27,14 +27,15 @@ const queryExecutor = new QueryExecutor();
 
 // Process jobs from the queue
 queryQueue.process(async (job) => {
-  logger.info(`Processing job ${job.id} for schedule ${job.data.scheduleId}`);
+  const attemptsMade = job.attemptsMade || 0;
+  logger.info(`Processing job ${job.id} for schedule ${job.data.scheduleId} (attempt ${attemptsMade + 1}/${job.opts.attempts || 1})`);
   
   try {
-    const result = await queryExecutor.execute(job.data);
+    const result = await queryExecutor.execute(job.data, attemptsMade);
     logger.info(`Job ${job.id} completed successfully`);
     return result;
   } catch (error) {
-    logger.error(`Job ${job.id} failed:`, error);
+    logger.error(`Job ${job.id} failed on attempt ${attemptsMade + 1}:`, error);
     throw error;
   }
 });

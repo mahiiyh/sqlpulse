@@ -137,7 +137,14 @@ export default function Connections() {
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    let defaultPort = 5432;
+                    if (type === 'mysql') defaultPort = 3306;
+                    else if (type === 'sqlserver') defaultPort = 1433;
+                    else if (type === 'oracle') defaultPort = 1521;
+                    setFormData({ ...formData, type, port: defaultPort });
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="postgresql">PostgreSQL</option>
@@ -148,29 +155,27 @@ export default function Connections() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {formData.type === 'sqlserver' ? 'Data Source (server,port or server\\instance)' : 'Host'}
+                  {formData.type === 'sqlserver' ? 'Server' : 'Host'}
                 </label>
                 <input
                   type="text"
                   required
                   value={formData.host}
                   onChange={(e) => setFormData({ ...formData, host: e.target.value })}
-                  placeholder={formData.type === 'sqlserver' ? 'server,1433 or server\\SQLEXPRESS' : 'localhost'}
+                  placeholder={formData.type === 'sqlserver' ? 'server.database.windows.net' : 'localhost'}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
-              {formData.type !== 'sqlserver' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.port}
-                    onChange={(e) => setFormData({ ...formData, port: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                <input
+                  type="number"
+                  required
+                  value={formData.port}
+                  onChange={(e) => setFormData({ ...formData, port: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Database Name

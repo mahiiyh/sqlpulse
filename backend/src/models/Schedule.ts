@@ -23,11 +23,22 @@ interface ScheduleAttributes {
   is_enabled: boolean;
   timezone: string;
   created_by: number;
+  
+  // Notification configuration
+  notification_enabled?: boolean;
+  notification_channel?: string;
+  notification_config?: any; // JSON field for channel-specific config
+  
+  // Retry configuration
+  max_retries?: number;
+  retry_delay_seconds?: number;
+  exponential_backoff?: boolean;
+  
   created_at?: Date;
   updated_at?: Date;
 }
 
-interface ScheduleCreationAttributes extends Optional<ScheduleAttributes, 'id' | 'created_at' | 'updated_at' | 'is_enabled' | 'description' | 'cron_expression' | 'next_run_time' | 'last_run_time'> {}
+interface ScheduleCreationAttributes extends Optional<ScheduleAttributes, 'id' | 'created_at' | 'updated_at' | 'is_enabled' | 'description' | 'cron_expression' | 'next_run_time' | 'last_run_time' | 'notification_enabled' | 'notification_channel' | 'notification_config' | 'max_retries' | 'retry_delay_seconds' | 'exponential_backoff'> {}
 
 export class Schedule extends Model<ScheduleAttributes, ScheduleCreationAttributes> implements ScheduleAttributes {
   public id!: number;
@@ -42,6 +53,17 @@ export class Schedule extends Model<ScheduleAttributes, ScheduleCreationAttribut
   public is_enabled!: boolean;
   public timezone!: string;
   public created_by!: number;
+  
+  // Notification configuration
+  public notification_enabled?: boolean;
+  public notification_channel?: string;
+  public notification_config?: any;
+  
+  // Retry configuration
+  public max_retries?: number;
+  public retry_delay_seconds?: number;
+  public exponential_backoff?: boolean;
+  
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -110,6 +132,34 @@ Schedule.init(
         model: 'users',
         key: 'id'
       }
+    },
+    notification_enabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    notification_channel: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    notification_config: {
+      type: DataTypes.JSONB,
+      allowNull: true
+    },
+    max_retries: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+    retry_delay_seconds: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 60
+    },
+    exponential_backoff: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
     created_at: {
       type: DataTypes.DATE,
