@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../lib/api';
+import CreateScheduleModal from '../components/CreateScheduleModal';
 
 interface Schedule {
   id: number;
@@ -15,6 +16,7 @@ interface Schedule {
 export default function Schedules() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchSchedules();
@@ -58,10 +60,19 @@ export default function Schedules() {
           <h1 className="text-3xl font-bold text-gray-900">Schedules</h1>
           <p className="mt-2 text-gray-600">Manage automated query schedules</p>
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button 
+          onClick={() => setShowCreateModal(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
           + New Schedule
         </button>
       </div>
+
+      <CreateScheduleModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={fetchSchedules}
+      />
 
       {loading ? (
         <div className="text-center py-12">Loading schedules...</div>
