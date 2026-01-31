@@ -25,6 +25,9 @@ function App() {
         <Route path="/connections" element={<Connections />} />
         <Route path="/history" element={<ExecutionHistory />} />
       </Route>
+      
+      {/* Catch-all route for undefined paths */}
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
     </Routes>
   );
 }
