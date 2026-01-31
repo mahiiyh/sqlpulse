@@ -281,11 +281,7 @@ export const searchQueries = async (req: AuthRequest, res: Response, next: NextF
 export const exportQueryResults = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { format = 'csv', connection_id, parameters } = req.body;
-
-    if (!connection_id) {
-      throw new AppError('Connection ID is required', 400);
-    }
+    const { format = 'csv', execution_history_id } = req.body;
 
     if (!['csv', 'excel', 'json'].includes(format)) {
       throw new AppError('Invalid export format. Use csv, excel, or json', 400);
@@ -302,23 +298,62 @@ export const exportQueryResults = async (req: AuthRequest, res: Response, next: 
       throw new AppError('Access denied', 403);
     }
 
-    // Fetch connection
-    const connection = await Connection.findByPk(connection_id);
-    if (!connection) {
-      throw new AppError('Connection not found', 404);
-    }
+    let rows: any[];
 
-    // Replace parameters in SQL if provided
-    let sqlToExecute = query.sql_content;
-    if (parameters) {
-      Object.keys(parameters).forEach(key => {
-        const regex = new RegExp(`@${key}`, 'g');
-        sqlToExecute = sqlToExecute.replace(regex, parameters[key]);
+    // If execution_history_id is provided, fetch results from execution history
+    if (execution_history_id) {
+      const execution = await ExecutionHistory.findByPk(execution_history_id);
+      if (!execution) {
+        throw new AppError('Execution history not found', 404);
+      }
+
+      // Verify the execution belongs to this query
+      if (execution.query_id !== parseInt(id)) {
+        throw new AppError('Execution does not belong to this query', 400);
+      }
+
+      // For now, re-execute the query since we don't store full results
+      // In production, you'd want to store results or fetch from cache
+      const connection = await Connection.findByPk(execution.connection_id);
+      if (!connection) {
+        throw new AppError('Connection not found', 404);
+      }
+
+      const result = await QueryExecutor.execute(connection, query.sql_content);
+      rows = result.rows;
+    } else {
+      // Execute query without execution history (legacy support)
+      const { connection_id, parameters } = req.body;
+      
+      if (!connection_id) {
+        throw new AppError('Connection ID or execution_history_id is required', 400);
+      }
+
+      const connection = await Connection.findByPk(connection_id);
+      if (!connection) {
+        throw new AppError('Connection not found', 404);
+      }
+
+      let sqlToExecute = query.sql_content;
+      
+      // Process dynamic parameters
+      sqlToExecute = QueryParameterProcessor.processParameters(sqlToExecute, {
+        userId: req.user.id,
+        username: req.user.username,
+        userEmail: req.user.email
       });
-    }
+      
+      // Replace custom parameters if provided
+      if (parameters) {
+        Object.keys(parameters).forEach(key => {
+          const regex = new RegExp(`@${key}`, 'g');
+          sqlToExecute = sqlToExecute.replace(regex, parameters[key]);
+        });
+      }
 
-    // Execute query
-    const result = await QueryExecutor.execute(connection, sqlToExecute);
+      const result = await QueryExecutor.execute(connection, sqlToExecute);
+      rows = result.rows;
+    }
 
     // Generate export file
     let fileContent: Buffer | string;
@@ -327,13 +362,13 @@ export const exportQueryResults = async (req: AuthRequest, res: Response, next: 
 
     switch (format) {
       case 'csv':
-        fileContent = ExportUtils.toCSV(result.rows);
+        fileContent = ExportUtils.toCSV(rows);
         break;
       case 'excel':
-        fileContent = await ExportUtils.toExcel(result.rows, query.name);
+        fileContent = await ExportUtils.toExcel(rows, query.name);
         break;
       case 'json':
-        fileContent = ExportUtils.toJSON(result.rows);
+        fileContent = ExportUtils.toJSON(rows);
         break;
       default:
         throw new AppError('Invalid format', 400);

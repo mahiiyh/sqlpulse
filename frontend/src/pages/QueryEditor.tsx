@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import apiClient from '../lib/api';
+import toast from 'react-hot-toast';
 
 interface Connection {
   id: number;
@@ -10,14 +11,25 @@ interface Connection {
   environment: string;
 }
 
+interface ExecutionResult {
+  rows: any[];
+  rowsAffected: number;
+  executionTime: number;
+  fields?: any[];
+  executionHistoryId: number;
+}
+
 export default function QueryEditor() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
-  const [executionResult, setExecutionResult] = useState<any>(null);
+  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+  const [executionError, setExecutionError] = useState<string | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [selectedConnectionId, setSelectedConnectionId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage] = useState(50);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -65,13 +77,15 @@ export default function QueryEditor() {
     try {
       if (id) {
         await apiClient.put(`/queries/${id}`, formData);
+        toast.success('Query updated successfully');
       } else {
-        await apiClient.post('/queries', formData);
+        const response = await apiClient.post('/queries', formData);
+        toast.success('Query created successfully');
+        navigate(`/queries/${response.data.data.id}`);
+        return;
       }
-      navigate('/queries');
-    } catch (error) {
-      console.error('Failed to save query:', error);
-      alert('Failed to save query');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save query');
     } finally {
       setLoading(false);
     }
@@ -79,35 +93,69 @@ export default function QueryEditor() {
 
   const handleExecute = async () => {
     if (!id) {
-      alert('Please save the query before executing');
+      toast.error('Please save the query before executing');
       return;
     }
 
     if (!selectedConnectionId) {
-      alert('Please select a connection');
+      toast.error('Please select a connection');
       return;
     }
 
     setExecuting(true);
     setExecutionResult(null);
+    setExecutionError(null);
+    setCurrentPage(1);
 
     try {
       const response = await apiClient.post(`/queries/${id}/execute`, {
         connection_id: selectedConnectionId
       });
-      setExecutionResult({
-        success: true,
-        data: response.data
-      });
+      
+      setExecutionResult(response.data.data);
+      toast.success(`Query executed successfully in ${response.data.data.executionTime}ms`);
     } catch (error: any) {
-      setExecutionResult({
-        success: false,
-        error: error.response?.data?.message || 'Execution failed'
-      });
+      const errorMsg = error.response?.data?.message || error.message || 'Execution failed';
+      setExecutionError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setExecuting(false);
     }
   };
+
+  const handleExport = async (format: 'csv' | 'json' | 'excel') => {
+    if (!executionResult) {
+      toast.error('No results to export');
+      return;
+    }
+
+    try {
+      const response = await apiClient.post(`/queries/${id}/export`, {
+        execution_history_id: executionResult.executionHistoryId,
+        format
+      }, {
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `query_results_${Date.now()}.${format === 'excel' ? 'xlsx' : format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success(`Exported as ${format.toUpperCase()}`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Export failed');
+    }
+  };
+
+  // Pagination
+  const totalPages = executionResult ? Math.ceil(executionResult.rows.length / rowsPerPage) : 0;
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedRows = executionResult?.rows.slice(startIndex, endIndex) || [];
 
   return (
     <div className="max-w-4xl">
@@ -302,63 +350,125 @@ export default function QueryEditor() {
         </div>
       </form>
 
+      {/* Execution Results */}
       {executionResult && (
-        <div className="mt-6 bg-white rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">
-              {executionResult.success ? '✓ Execution Results' : '✗ Execution Error'}
-            </h3>
-            {executionResult.success && executionResult.data.data && (
-              <div className="text-sm text-gray-600">
-                {executionResult.data.data.rows.length} rows • {executionResult.data.data.executionTime}ms
+        <div className="mt-6 bg-white rounded-lg shadow">
+          <div className="border-b border-gray-200 p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-semibold text-green-600">✓ Execution Successful</h3>
+                <span className="text-sm text-gray-600">
+                  {executionResult.rows.length} rows • {executionResult.executionTime}ms • {executionResult.rowsAffected} affected
+                </span>
               </div>
-            )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleExport('csv')}
+                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                >
+                  📄 CSV
+                </button>
+                <button
+                  onClick={() => handleExport('json')}
+                  className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                >
+                  📋 JSON
+                </button>
+                <button
+                  onClick={() => handleExport('excel')}
+                  className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                >
+                  📊 Excel
+                </button>
+              </div>
+            </div>
           </div>
-          {executionResult.success ? (
-            <div>
-              {executionResult.data.data.rows.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        {Object.keys(executionResult.data.data.rows[0]).map((key) => (
-                          <th
-                            key={key}
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+
+          {executionResult.rows.length > 0 ? (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {Object.keys(executionResult.rows[0]).map((column) => (
+                        <th
+                          key={column}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                        >
+                          {column}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedRows.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        {Object.values(row).map((value: any, cellIdx) => (
+                          <td
+                            key={cellIdx}
+                            className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap"
                           >
-                            {key}
-                          </th>
+                            {value === null || value === undefined ? (
+                              <span className="text-gray-400 italic">NULL</span>
+                            ) : typeof value === 'object' ? (
+                              <span className="text-xs font-mono">{JSON.stringify(value)}</span>
+                            ) : (
+                              String(value)
+                            )}
+                          </td>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {executionResult.data.data.rows.map((row: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          {Object.values(row).map((value: any, cellIdx: number) => (
-                            <td key={cellIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {value !== null && value !== undefined ? String(value) : <span className="text-gray-400 italic">null</span>}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="bg-gray-50 p-4 rounded border border-gray-200 text-center text-gray-500">
-                  Query executed successfully but returned no rows
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="border-t border-gray-200 p-4 flex items-center justify-between">
+                  <div className="text-sm text-gray-700">
+                    Showing {startIndex + 1} to {Math.min(endIndex, executionResult.rows.length)} of {executionResult.rows.length} results
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-3 py-1 text-sm text-gray-700">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               )}
-              <div className="mt-4 flex gap-4 text-sm text-gray-600">
-                <span>Rows affected: <strong>{executionResult.data.data.rowsAffected}</strong></span>
-                <span>Execution time: <strong>{executionResult.data.data.executionTime}ms</strong></span>
-              </div>
-            </div>
+            </>
           ) : (
-            <div className="bg-red-50 p-4 rounded border border-red-200 text-red-700">
-              {executionResult.error}
+            <div className="p-8 text-center text-gray-500">
+              Query executed successfully but returned no rows.
             </div>
           )}
+        </div>
+      )}
+
+      {/* Execution Error */}
+      {executionError && (
+        <div className="mt-6 bg-red-50 rounded-lg shadow p-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">❌</span>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Execution Failed</h3>
+              <p className="text-sm text-red-700 font-mono whitespace-pre-wrap">{executionError}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
