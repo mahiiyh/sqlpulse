@@ -1,12 +1,27 @@
 import { Response, NextFunction } from 'express';
 import { Schedule } from '../models/Schedule';
+import { Query } from '../models/Query';
+import { Connection } from '../models/Connection';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { calculateNextRun } from '../utils/cronUtils';
 
 export const getSchedules = async (_req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const schedules = await Schedule.findAll({
-      order: [['next_run_time', 'ASC']]
+      order: [['next_run_time', 'ASC']],
+      include: [
+        {
+          model: Query,
+          as: 'query',
+          attributes: ['id', 'name']
+        },
+        {
+          model: Connection,
+          as: 'connection',
+          attributes: ['id', 'name', 'environment']
+        }
+      ]
     });
 
     res.json({
@@ -20,7 +35,20 @@ export const getSchedules = async (_req: AuthRequest, res: Response, next: NextF
 
 export const getSchedule = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const schedule = await Schedule.findByPk(req.params.id);
+    const schedule = await Schedule.findByPk(req.params.id, {
+      include: [
+        {
+          model: Query,
+          as: 'query',
+          attributes: ['id', 'name']
+        },
+        {
+          model: Connection,
+          as: 'connection',
+          attributes: ['id', 'name', 'environment']
+        }
+      ]
+    });
 
     if (!schedule) {
       throw new AppError('Schedule not found', 404);
@@ -37,8 +65,15 @@ export const getSchedule = async (req: AuthRequest, res: Response, next: NextFun
 
 export const createSchedule = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    // Calculate next run time if cron expression is provided
+    let next_run_time = null;
+    if (req.body.cron_expression) {
+      next_run_time = calculateNextRun(req.body.cron_expression);
+    }
+
     const schedule = await Schedule.create({
       ...req.body,
+      next_run_time,
       created_by: req.user.id
     });
 
@@ -59,7 +94,13 @@ export const updateSchedule = async (req: AuthRequest, res: Response, next: Next
       throw new AppError('Schedule not found', 404);
     }
 
-    await schedule.update(req.body);
+    // Recalculate next run time if cron expression is updated
+    const updateData: any = { ...req.body };
+    if (req.body.cron_expression && req.body.cron_expression !== schedule.cron_expression) {
+      updateData.next_run_time = calculateNextRun(req.body.cron_expression);
+    }
+
+    await schedule.update(updateData);
 
     res.json({
       success: true,
