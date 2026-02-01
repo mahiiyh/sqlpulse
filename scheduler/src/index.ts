@@ -57,7 +57,7 @@ const scheduleManager = new ScheduleManager(queryQueue);
 // Create Express app for health check
 const healthApp: Application = express();
 
-healthApp.get('/health', (_req, res) => {
+healthApp.get('/health', (_req: express.Request, res: express.Response) => {
   const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),

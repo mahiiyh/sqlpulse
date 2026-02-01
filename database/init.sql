@@ -64,6 +64,20 @@ CREATE TABLE IF NOT EXISTS query_tags (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- Query templates table
+CREATE TABLE IF NOT EXISTS query_templates (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  description TEXT,
+  sql_template TEXT NOT NULL,
+  category VARCHAR(100) NOT NULL DEFAULT 'General',
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  variables JSONB,
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 -- Schedules table
 CREATE TABLE IF NOT EXISTS schedules (
   id SERIAL PRIMARY KEY,
@@ -78,6 +92,12 @@ CREATE TABLE IF NOT EXISTS schedules (
   is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   timezone VARCHAR(50) NOT NULL DEFAULT 'UTC',
   created_by INTEGER NOT NULL REFERENCES users(id),
+  notification_enabled BOOLEAN DEFAULT FALSE,
+  notification_channel VARCHAR(50),
+  notification_config JSONB,
+  max_retries INTEGER DEFAULT 0,
+  retry_delay_seconds INTEGER DEFAULT 60,
+  exponential_backoff BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -107,6 +127,7 @@ CREATE TABLE IF NOT EXISTS execution_history (
   status VARCHAR(50) NOT NULL DEFAULT 'pending',
   error_message TEXT,
   parameters_used JSONB,
+  retry_attempt INTEGER DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -140,6 +161,9 @@ CREATE INDEX IF NOT EXISTS idx_execution_history_status ON execution_history(sta
 
 CREATE INDEX IF NOT EXISTS idx_query_tags_query_id ON query_tags(query_id);
 CREATE INDEX IF NOT EXISTS idx_query_tags_tag_name ON query_tags(tag_name);
+
+CREATE INDEX IF NOT EXISTS idx_query_templates_created_by ON query_templates(created_by);
+CREATE INDEX IF NOT EXISTS idx_query_templates_category ON query_templates(category);
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, email, password_hash, role, timezone)
