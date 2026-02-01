@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../lib/api';
+import Loader from '../components/Loader';
 
 interface Execution {
   id: number;
@@ -59,13 +60,14 @@ export default function ExecutionHistory() {
   }, [filterStatus, filterType, dateFrom, dateTo, searchQuery]);
 
   const fetchExecutionHistory = async () => {
+    const startTime = Date.now();
     try {
       setLoading(true);
       const params: any = { limit: 100 };
       if (filterStatus !== 'all') params.status = filterStatus;
       if (filterType !== 'all') params.execution_type = filterType;
-      if (dateFrom) params.date_from = dateFrom;
-      if (dateTo) params.date_to = dateTo;
+      if (dateFrom) params.date_from = dateFrom + 'T00:00:00.000Z';
+      if (dateTo) params.date_to = dateTo + 'T23:59:59.999Z';
       if (searchQuery) params.search = searchQuery;
 
       const response = await apiClient.get('/history', { params });
@@ -73,7 +75,10 @@ export default function ExecutionHistory() {
     } catch (error) {
       console.error('Failed to fetch execution history:', error);
     } finally {
-      setLoading(false);
+      // Ensure loader shows for at least 600ms for better UX
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 600 - elapsedTime);
+      setTimeout(() => setLoading(false), remainingTime);
     }
   };
 
@@ -132,55 +137,55 @@ export default function ExecutionHistory() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Execution History</h1>
-        <p className="mt-2 text-gray-600">View query execution history and logs</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">View query execution history and logs</p>
       </div>
 
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500">Total Executions</div>
-            <div className="text-2xl font-bold text-gray-900">{stats.totalExecutions}</div>
-            <div className="text-xs text-gray-400">{stats.period}</div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+            <div className="text-sm text-gray-500 dark:text-gray-400">Total Executions</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalExecutions}</div>
+            <div className="text-xs text-gray-400 dark:text-gray-500">{stats.period}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500">Successful</div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+            <div className="text-sm text-gray-500 dark:text-gray-400">Successful</div>
             <div className="text-2xl font-bold text-green-600">{stats.successfulExecutions}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500">Failed</div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+            <div className="text-sm text-gray-500 dark:text-gray-400">Failed</div>
             <div className="text-2xl font-bold text-red-600">{stats.failedExecutions}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500">Success Rate</div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+            <div className="text-sm text-gray-500 dark:text-gray-400">Success Rate</div>
             <div className="text-2xl font-bold text-blue-600">{stats.successRate}%</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500">Avg Duration</div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+            <div className="text-sm text-gray-500 dark:text-gray-400">Avg Duration</div>
             <div className="text-2xl font-bold text-purple-600">{formatDuration(stats.avgExecutionTimeMs)}</div>
           </div>
         </div>
       )}
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-4">
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search Query Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Query Name</label>
             <input
               type="text"
               placeholder="Search by query name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Statuses</option>
               <option value="success">Success</option>
@@ -191,11 +196,11 @@ export default function ExecutionHistory() {
             </select>
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Types</option>
               <option value="manual">Manual</option>
@@ -205,21 +210,21 @@ export default function ExecutionHistory() {
         </div>
         <div className="flex gap-4 items-end">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <button
@@ -230,7 +235,7 @@ export default function ExecutionHistory() {
               setDateFrom('');
               setDateTo('');
             }}
-            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Clear Filters
           </button>
@@ -238,11 +243,11 @@ export default function ExecutionHistory() {
       </div>
 
       {/* Executions Table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <Loader size="md" text="Loading execution history..." />
         ) : executions.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No execution history found</div>
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">No execution history found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

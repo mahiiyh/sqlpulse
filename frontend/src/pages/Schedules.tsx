@@ -131,8 +131,8 @@ export default function Schedules() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       ) : filteredSchedules.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <div className="text-gray-500 mb-4">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="text-gray-500 dark:text-gray-400 mb-4">
             {filterEnabled === 'all' ? 'No schedules configured' : `No ${filterEnabled} schedules`}
           </div>
           {filterEnabled === 'all' && (
@@ -145,9 +145,9 @@ export default function Schedules() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Schedule
@@ -169,31 +169,37 @@ export default function Schedules() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredSchedules.map((schedule) => (
-                <tr key={schedule.id} className="hover:bg-gray-50">
+                <tr key={schedule.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{schedule.schedule_name}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">{schedule.schedule_name}</div>
                       <div className="text-xs text-gray-500 font-mono">{schedule.cron_expression}</div>
                       <div className="flex gap-2 mt-1">
                         {schedule.notification_enabled && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            🔔 Notifications
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            Notifications
                           </span>
                         )}
                         {schedule.max_retries > 0 && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                            ↻ Retry {schedule.max_retries}x
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Retry {schedule.max_retries}x
                           </span>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                     {schedule.query?.name || 'N/A'}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                     <div>
                       {schedule.connection?.name}
                       {schedule.connection?.environment && (
@@ -234,7 +240,7 @@ export default function Schedules() {
                     </button>
                     <button
                       onClick={() => toggleSchedule(schedule.id, schedule.is_enabled)}
-                      className="text-gray-600 hover:text-gray-900 font-medium"
+                      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
                     >
                       {schedule.is_enabled ? 'Disable' : 'Enable'}
                     </button>

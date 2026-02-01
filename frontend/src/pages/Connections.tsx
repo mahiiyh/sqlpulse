@@ -115,8 +115,8 @@ export default function Connections() {
 
       {/* Create Form */}
       {showForm && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Create New Connection</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Create New Connection</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -246,8 +246,8 @@ export default function Connections() {
           (searchTerm === '' || conn.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
            conn.host.toLowerCase().includes(searchTerm.toLowerCase()))
         ).length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <div className="text-gray-500 mb-4">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="text-gray-500 dark:text-gray-400 mb-4">
             {connections.length === 0 ? 'No connections yet' : 'No matching connections'}
           </div>
           {connections.length === 0 && (
@@ -266,11 +266,11 @@ export default function Connections() {
             (searchTerm === '' || conn.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
              conn.host.toLowerCase().includes(searchTerm.toLowerCase()))
           ).map((conn) => (
-            <div key={conn.id} className="bg-white rounded-lg shadow p-6">
+            <div key={conn.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{conn.name}</h3>
-                  <div className="text-sm text-gray-500 mt-1">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{conn.name}</h3>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {conn.type.toUpperCase()}
                   </div>
                 </div>
@@ -288,9 +288,24 @@ export default function Connections() {
               </div>
 
               <div className="space-y-1 text-sm text-gray-600 mb-4">
-                <div>🌐 {conn.host}:{conn.port}</div>
-                <div>💾 {conn.database_name}</div>
-                <div>👤 {conn.username}</div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                  {conn.host}:{conn.port}
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                  </svg>
+                  {conn.database_name}
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  {conn.username}
+                </div>
               </div>
 
               <div className="flex gap-2">

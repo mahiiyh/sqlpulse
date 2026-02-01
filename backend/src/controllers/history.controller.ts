@@ -14,8 +14,9 @@ export const getExecutionHistory = async (req: AuthRequest, res: Response, next:
       connection_id, 
       status, 
       execution_type,
-      start_date,
-      end_date,
+      date_from,
+      date_to,
+      search,
       limit = 50,
       offset = 0
     } = req.query;
@@ -27,11 +28,37 @@ export const getExecutionHistory = async (req: AuthRequest, res: Response, next:
     if (status) where.status = status;
     if (execution_type) where.execution_type = execution_type;
     
-    if (start_date || end_date) {
+    if (date_from || date_to) {
       where.executed_at = {};
-      if (start_date) where.executed_at[Op.gte] = new Date(start_date as string);
-      if (end_date) where.executed_at[Op.lte] = new Date(end_date as string);
+      if (date_from) where.executed_at[Op.gte] = new Date(date_from as string);
+      if (date_to) where.executed_at[Op.lte] = new Date(date_to as string);
     }
+
+    // Build include array for search functionality
+    const include: any[] = [
+      {
+        model: Query,
+        as: 'query',
+        attributes: ['id', 'name', 'description', 'category'],
+        ...(search && {
+          where: {
+            name: {
+              [Op.iLike]: `%${search}%`
+            }
+          }
+        })
+      },
+      {
+        model: Connection,
+        as: 'connection',
+        attributes: ['id', 'name', 'type', 'environment']
+      },
+      {
+        model: User,
+        as: 'executor',
+        attributes: ['id', 'username', 'email']
+      }
+    ];
 
     // Non-admin users can only see their own executions or public queries
     if (req.user.role !== 'admin') {
@@ -40,23 +67,7 @@ export const getExecutionHistory = async (req: AuthRequest, res: Response, next:
 
     const { count, rows } = await ExecutionHistory.findAndCountAll({
       where,
-      include: [
-        {
-          model: Query,
-          as: 'query',
-          attributes: ['id', 'name', 'description', 'category']
-        },
-        {
-          model: Connection,
-          as: 'connection',
-          attributes: ['id', 'name', 'type', 'environment']
-        },
-        {
-          model: User,
-          as: 'executor',
-          attributes: ['id', 'username', 'email']
-        }
-      ],
+      include,
       order: [['executed_at', 'DESC']],
       limit: parseInt(limit as string),
       offset: parseInt(offset as string)

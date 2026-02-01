@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../lib/api';
+import Loader from '../components/Loader';
 
 interface QueryTemplate {
   id: number;
@@ -40,7 +41,9 @@ const QueryTemplates: React.FC = () => {
   }, [search, categoryFilter]);
 
   const fetchTemplates = async () => {
+    const startTime = Date.now();
     try {
+      setLoading(true);
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       if (categoryFilter) params.append('category', categoryFilter);
@@ -56,7 +59,10 @@ const QueryTemplates: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch templates:', error);
     } finally {
-      setLoading(false);
+      // Ensure loader shows for at least 500ms for better UX
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      setTimeout(() => setLoading(false), remainingTime);
     }
   };
 
@@ -98,7 +104,7 @@ const QueryTemplates: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 dark:text-white">Loading...</div>;
+    return <Loader size="lg" text="Loading templates..." fullScreen />;
   }
 
   return (

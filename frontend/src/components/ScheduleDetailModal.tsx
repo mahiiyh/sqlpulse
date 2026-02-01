@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../lib/api';
 import toast from 'react-hot-toast';
+import Loader from './Loader';
 
 interface Schedule {
   id: number;
@@ -168,7 +169,7 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
-            <div className="text-center py-12">Loading...</div>
+            <Loader size="md" text="Loading schedule details..." />
           ) : (
             <>
               {activeTab === 'details' && (
@@ -455,9 +456,12 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
                     <h3 className="text-lg font-medium">Execution History</h3>
                     <button 
                       onClick={fetchExecutionHistory}
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                     >
-                      🔄 Refresh
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Refresh
                     </button>
                   </div>
 
@@ -480,10 +484,19 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-xl">
-                                {execution.status === 'success' ? '✅' : 
-                                 execution.status === 'failed' ? '❌' : '⏳'}
-                              </span>
+                              {execution.status === 'success' ? (
+                                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              ) : execution.status === 'failed' ? (
+                                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              ) : (
+                                <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              )}
                               <div>
                                 <p className="font-medium text-gray-900">
                                   {execution.query?.name || 'Unknown Query'}

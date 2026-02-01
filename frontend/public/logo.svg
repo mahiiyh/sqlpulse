@@ -1,0 +1,55 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient circle -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:0" />
+      <stop offset="50%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:0" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main circle with gradient -->
+  <circle cx="100" cy="100" r="90" fill="url(#logoGradient)" opacity="0.1"/>
+  <circle cx="100" cy="100" r="75" fill="url(#logoGradient)" opacity="0.2"/>
+  
+  <!-- Pulse wave line (heartbeat style) -->
+  <path d="M 40 100 L 60 100 L 70 70 L 80 130 L 90 60 L 100 100 L 110 100 L 120 80 L 130 120 L 140 90 L 160 100" 
+        stroke="url(#pulseGradient)" 
+        stroke-width="3" 
+        fill="none" 
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#glow)"/>
+  
+  <!-- Database icon integrated -->
+  <ellipse cx="100" cy="85" rx="35" ry="12" fill="none" stroke="#06B6D4" stroke-width="3" opacity="0.8"/>
+  <path d="M 65 85 L 65 105 Q 65 115 100 115 Q 135 115 135 105 L 135 85" 
+        fill="none" 
+        stroke="#06B6D4" 
+        stroke-width="3" 
+        opacity="0.8"/>
+  <ellipse cx="100" cy="105" rx="35" ry="12" fill="none" stroke="#06B6D4" stroke-width="3" opacity="0.8"/>
+  
+  <!-- Letter S integrated with pulse -->
+  <path d="M 110 125 Q 125 125 125 135 Q 125 145 110 145 L 90 145 Q 75 145 75 155 Q 75 165 90 165" 
+        fill="none" 
+        stroke="#3B82F6" 
+        stroke-width="4" 
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <!-- Outer glow ring -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.3"/>
+</svg>
