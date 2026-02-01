@@ -140,30 +140,38 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Monitor your SQL query workflows and performance
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0">
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={autoRefresh}
                 onChange={(e) => setAutoRefresh(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Auto-refresh (10s)</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Auto-refresh</span>
             </label>
             <button
               onClick={fetchDashboardData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg text-sm font-medium"
             >
-              🔄 Refresh Now
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
             </button>
           </div>
         </div>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Welcome to SQL Query Management Dashboard
-        </p>
       </div>
 
       {loading ? (
@@ -173,82 +181,95 @@ export default function Dashboard() {
       ) : (
         <>
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/queries')}>
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <span className="text-3xl">📚</span>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Total Queries Card */}
+            <div 
+              className="bg-white dark:bg-gray-800 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer border border-gray-100 dark:border-gray-700 group"
+              onClick={() => navigate('/queries')}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Total Queries
+                    </p>
+                    <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                      {stats.totalQueries}
+                    </p>
                   </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Total Queries
-                      </dt>
-                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                        {stats.totalQueries}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/schedules')}>
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <span className="text-3xl">⏰</span>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Active Schedules
-                      </dt>
-                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                        {stats.totalSchedules}
-                      </dd>
-                    </dl>
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/history')}>
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <span className="text-3xl">🚀</span>
+            {/* Active Schedules Card */}
+            <div 
+              className="bg-white dark:bg-gray-800 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer border border-gray-100 dark:border-gray-700 group"
+              onClick={() => navigate('/schedules')}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Active Schedules
+                    </p>
+                    <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                      {stats.totalSchedules}
+                    </p>
                   </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Executions Today
-                      </dt>
-                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                        {stats.totalExecutions}
-                      </dd>
-                    </dl>
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <span className="text-3xl">✅</span>
+            {/* Executions Today Card */}
+            <div 
+              className="bg-white dark:bg-gray-800 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer border border-gray-100 dark:border-gray-700 group"
+              onClick={() => navigate('/history')}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Executions Today
+                    </p>
+                    <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                      {stats.totalExecutions}
+                    </p>
                   </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                        Success Rate
-                      </dt>
-                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                        {stats.successRate}%
-                      </dd>
-                    </dl>
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Success Rate Card */}
+            <div className="bg-white dark:bg-gray-800 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 group">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Success Rate
+                    </p>
+                    <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                      {stats.successRate}%
+                    </p>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
                 </div>
               </div>

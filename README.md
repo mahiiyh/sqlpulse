@@ -1,9 +1,17 @@
-# 🚀 SQL Query Management Dashboard
+# QueryFlow - Modern SQL Query Management & Automation
 
-A comprehensive, modern web-based SQL query repository, execution, and automation platform. Store, organize, execute, schedule, and track SQL queries across multiple database projects with a beautiful UI and powerful scheduling engine.
+<div align="center">
+  
+![QueryFlow](https://img.shields.io/badge/QueryFlow-SQL%20Management-blue?style=for-the-badge)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql)
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+**Streamline your SQL workflow with intelligent query management, automation, and monitoring**
+
+</div>
+
+---
 
 ## ✨ Features
 
