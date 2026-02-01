@@ -89,12 +89,6 @@ export default function Login() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
-
-          <div className="text-sm text-center text-gray-600">
-            <p className="font-semibold mb-2">Default Credentials:</p>
-            <p>Admin: admin@example.com / admin123</p>
-            <p>Developer: dev@example.com / dev123</p>
-          </div>
         </form>
       </div>
     </div>

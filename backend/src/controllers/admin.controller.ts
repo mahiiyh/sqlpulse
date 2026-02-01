@@ -46,10 +46,10 @@ export const createUser = async (req: AuthRequest, res: Response, next: NextFunc
     const user = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password_hash: hashedPassword,
       role: role || 'analyst',
       is_active: true
-    } as any);
+    });
 
     res.status(201).json({
       success: true,
