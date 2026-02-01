@@ -1,16 +1,20 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function Layout() {
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const { darkMode, toggleDarkMode } = useTheme();
 
   const navigation = [
     { name: 'Dashboard', path: '/', icon: '📊' },
     { name: 'Query Library', path: '/queries', icon: '📚' },
+    { name: 'Templates', path: '/templates', icon: '📄' },
     { name: 'Schedules', path: '/schedules', icon: '⏰' },
     { name: 'Connections', path: '/connections', icon: '🔌' },
     { name: 'History', path: '/history', icon: '📜' },
+    { name: 'Settings', path: '/settings', icon: '⚙️' },
   ];
 
   // Add Admin menu item if user is admin
@@ -19,47 +23,78 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-primary-600">
-                  🗄️ SQL Query Dashboard
-                </h1>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      location.pathname === item.path
-                        ? 'border-primary-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    }`}
-                  >
-                    <span className="mr-2">{item.icon}</span>
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <h1 className="text-lg font-bold text-primary-600 dark:text-primary-400">
+                🗄️ SQL Query
+              </h1>
             </div>
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <span className="text-sm text-gray-700 mr-4">
-                  👤 {user?.username} ({user?.role})
-                </span>
-                <button
-                  onClick={logout}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
+
+            {/* Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-4 flex-1 justify-center">
+              {navigation.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    location.pathname === item.path
+                      ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                  }`}
                 >
-                  Logout
-                </button>
-              </div>
+                  <span className="mr-1.5 text-base">{item.icon}</span>
+                  <span className="hidden xl:inline">{item.name}</span>
+                </Link>
+              ))}
             </div>
+
+            {/* Right side actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                <span className="text-lg">{darkMode ? '☀️' : '🌙'}</span>
+              </button>
+              <div className="hidden sm:flex items-center gap-2 border-l dark:border-gray-700 pl-3 ml-1">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {user?.username}
+                </span>
+                <span className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                  {user?.role}
+                </span>
+              </div>
+              <button
+                onClick={logout}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          <div className="lg:hidden pb-3 pt-2 space-y-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === item.path
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="mr-3">{item.icon}</span>
+                {item.name}
+              </Link>
+            ))}
           </div>
         </div>
       </nav>

@@ -4,6 +4,7 @@ import Query from './Query';
 import Schedule from './Schedule';
 import ExecutionHistory from './ExecutionHistory';
 import ScheduleDependency from './ScheduleDependency';
+import QueryTemplate from './QueryTemplate';
 
 // Define associations
 User.hasMany(Connection, { foreignKey: 'created_by', as: 'connections' });
@@ -11,6 +12,9 @@ Connection.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 
 User.hasMany(Query, { foreignKey: 'created_by', as: 'queries' });
 Query.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+User.hasMany(QueryTemplate, { foreignKey: 'created_by', as: 'templates' });
+QueryTemplate.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 
 Query.hasMany(Schedule, { foreignKey: 'query_id', as: 'schedules' });
 Schedule.belongsTo(Query, { foreignKey: 'query_id', as: 'query' });
@@ -45,5 +49,6 @@ export {
   Query,
   Schedule,
   ExecutionHistory,
-  ScheduleDependency
+  ScheduleDependency,
+  QueryTemplate
 };

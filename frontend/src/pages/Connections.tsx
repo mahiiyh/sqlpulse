@@ -81,7 +81,7 @@ export default function Connections() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Database Connections</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Database Connections</h1>
           <p className="mt-2 text-gray-600">Manage database connections</p>
         </div>
         <button

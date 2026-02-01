@@ -5,10 +5,12 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import QueryLibrary from './pages/QueryLibrary';
 import QueryEditor from './pages/QueryEditor';
+import QueryTemplates from './pages/QueryTemplates';
 import Schedules from './pages/Schedules';
 import Connections from './pages/Connections';
 import ExecutionHistory from './pages/ExecutionHistory';
 import AdminUsers from './pages/AdminUsers';
+import Settings from './pages/Settings';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -22,9 +24,11 @@ function App() {
         <Route path="/queries" element={<QueryLibrary />} />
         <Route path="/queries/new" element={<QueryEditor />} />
         <Route path="/queries/:id" element={<QueryEditor />} />
+        <Route path="/templates" element={<QueryTemplates />} />
         <Route path="/schedules" element={<Schedules />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/history" element={<ExecutionHistory />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/admin/users" element={<AdminUsers />} />
       </Route>
       

@@ -8,6 +8,7 @@ import historyRoutes from './history.routes';
 import dependencyRoutes from './dependency.routes';
 import queueRoutes from './queue.routes';
 import queryVersionRoutes from './queryVersion.routes';
+import queryTemplateRoutes from './queryTemplate.routes';
 import adminRoutes from './admin.routes';
 
 const router = Router();
@@ -16,6 +17,7 @@ router.use('/auth', authRoutes);
 router.use('/connections', connectionRoutes);
 router.use('/queries', queryRoutes);
 router.use('/query', queryVersionRoutes);
+router.use('/query-templates', queryTemplateRoutes);
 router.use('/schedules', scheduleRoutes);
 router.use('/executions', executionRoutes);
 router.use('/history', historyRoutes);

@@ -1,7 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 import apiClient from '../lib/api';
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -18,6 +36,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [pieData, setPieData] = useState<any[]>([]);
+  const [chartType, setChartType] = useState<'line' | 'bar' | 'area'>('line');
 
   useEffect(() => {
     fetchDashboardData();
@@ -52,12 +72,26 @@ export default function Dashboard() {
       ]);
 
       // Set stats
+      const queriesData = queriesRes.data.data || [];
       setStats({
-        totalQueries: queriesRes.data.data?.length || 0,
+        totalQueries: queriesData.length,
         totalSchedules: schedulesRes.data.data?.filter((s: any) => s.is_enabled).length || 0,
         totalExecutions: statsRes.data.data?.totalExecutions || 0,
         successRate: parseFloat(statsRes.data.data?.successRate || '0'),
       });
+
+      // Prepare pie chart data (query categories)
+      const categoryCount: Record<string, number> = {};
+      queriesData.forEach((query: any) => {
+        const cat = query.category || 'Uncategorized';
+        categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+      });
+
+      const pieChartData = Object.entries(categoryCount).map(([name, value]) => ({
+        name,
+        value,
+      }));
+      setPieData(pieChartData);
 
       // Set upcoming schedules
       setUpcomingSchedules(upcomingRes.data.data || []);
@@ -108,7 +142,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -117,7 +151,7 @@ export default function Dashboard() {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">Auto-refresh (10s)</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Auto-refresh (10s)</span>
             </label>
             <button
               onClick={fetchDashboardData}
@@ -127,7 +161,7 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
           Welcome to SQL Query Management Dashboard
         </p>
       </div>
@@ -140,7 +174,7 @@ export default function Dashboard() {
         <>
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/queries')}>
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/queries')}>
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -148,10 +182,10 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Total Queries
                       </dt>
-                      <dd className="text-3xl font-semibold text-gray-900">
+                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
                         {stats.totalQueries}
                       </dd>
                     </dl>
@@ -160,7 +194,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/schedules')}>
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/schedules')}>
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -168,10 +202,10 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Active Schedules
                       </dt>
-                      <dd className="text-3xl font-semibold text-gray-900">
+                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
                         {stats.totalSchedules}
                       </dd>
                     </dl>
@@ -180,7 +214,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/history')}>
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/history')}>
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -188,10 +222,10 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Executions Today
                       </dt>
-                      <dd className="text-3xl font-semibold text-gray-900">
+                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
                         {stats.totalExecutions}
                       </dd>
                     </dl>
@@ -200,7 +234,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow">
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -208,10 +242,10 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Success Rate
                       </dt>
-                      <dd className="text-3xl font-semibold text-gray-900">
+                      <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
                         {stats.successRate}%
                       </dd>
                     </dl>
@@ -326,43 +360,143 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Execution Trends Chart */}
-          {chartData.length > 0 && (
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                  📊 Execution Trends (Last 7 Days)
-                </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Line 
-                      yAxisId="left"
-                      type="monotone" 
-                      dataKey="executions" 
-                      stroke="#3b82f6" 
-                      strokeWidth={2}
-                      name="Executions"
-                      dot={{ r: 4 }}
-                    />
-                    <Line 
-                      yAxisId="right"
-                      type="monotone" 
-                      dataKey="avgTime" 
-                      stroke="#10b981" 
-                      strokeWidth={2}
-                      name="Avg Time (ms)"
-                      dot={{ r: 4 }}
-                    />
-                  </LineChart>
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Execution Trends Chart */}
+            {chartData.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Execution Trends (Last 7 Days)
+                  </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setChartType('line')}
+                      className={`px-3 py-1 rounded text-sm ${
+                        chartType === 'line'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Line
+                    </button>
+                    <button
+                      onClick={() => setChartType('bar')}
+                      className={`px-3 py-1 rounded text-sm ${
+                        chartType === 'bar'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Bar
+                    </button>
+                    <button
+                      onClick={() => setChartType('area')}
+                      className={`px-3 py-1 rounded text-sm ${
+                        chartType === 'area'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      Area
+                    </button>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  {chartType === 'line' ? (
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" stroke="#6b7280" />
+                      <YAxis yAxisId="left" stroke="#3b82f6" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+                      <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+                      <Legend />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="executions"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        name="Executions"
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="avgTime"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        name="Avg Time (ms)"
+                      />
+                    </LineChart>
+                  ) : chartType === 'bar' ? (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+                      <Legend />
+                      <Bar dataKey="executions" fill="#3b82f6" name="Executions" />
+                      <Bar dataKey="avgTime" fill="#10b981" name="Avg Time (ms)" />
+                    </BarChart>
+                  ) : (
+                    <AreaChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+                      <Legend />
+                      <Area
+                        type="monotone"
+                        dataKey="executions"
+                        stackId="1"
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
+                        fillOpacity={0.6}
+                        name="Executions"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="avgTime"
+                        stackId="2"
+                        stroke="#10b981"
+                        fill="#10b981"
+                        fillOpacity={0.6}
+                        name="Avg Time (ms)"
+                      />
+                    </AreaChart>
+                  )}
                 </ResponsiveContainer>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Query Categories Pie Chart */}
+            {pieData.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                  Queries by Category
+                </h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
 
           {/* Active Jobs Widget */}
           {activeJobs.length > 0 && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import apiClient from '../lib/api';
 import toast from 'react-hot-toast';
@@ -22,6 +22,7 @@ interface ExecutionResult {
 export default function QueryEditor() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
@@ -46,8 +47,11 @@ export default function QueryEditor() {
     fetchConnections();
     if (id) {
       fetchQuery();
+    } else if (location.state?.sql) {
+      // Load template SQL if provided
+      setFormData(prev => ({ ...prev, sql_content: location.state.sql }));
     }
-  }, [id]);
+  }, [id, location.state]);
 
   const fetchConnections = async () => {
     try {
@@ -160,10 +164,10 @@ export default function QueryEditor() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {id ? 'Edit Query' : 'Create Query'}
         </h1>
-        <p className="mt-2 text-gray-600">Define your SQL query and metadata</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Define your SQL query and metadata</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">

@@ -82,7 +82,7 @@ export default function Schedules() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Schedules</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Schedules</h1>
           <p className="mt-2 text-gray-600">Manage automated query schedules</p>
         </div>
         <button 

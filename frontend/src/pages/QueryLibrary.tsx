@@ -57,7 +57,7 @@ export default function QueryLibrary() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Query Library</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Query Library</h1>
           <p className="mt-2 text-gray-600">Browse and manage your SQL queries</p>
         </div>
         <Link
