@@ -12,6 +12,8 @@ export default function Dashboard() {
   });
   const [upcomingSchedules, setUpcomingSchedules] = useState([]);
   const [recentExecutions, setRecentExecutions] = useState([]);
+  const [queueStats, setQueueStats] = useState<any>(null);
+  const [activeJobs, setActiveJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,12 +25,14 @@ export default function Dashboard() {
       setLoading(true);
 
       // Fetch all data in parallel
-      const [queriesRes, schedulesRes, upcomingRes, statsRes, executionsRes] = await Promise.all([
+      const [queriesRes, schedulesRes, upcomingRes, statsRes, executionsRes, queueRes, jobsRes] = await Promise.all([
         apiClient.get('/queries'),
         apiClient.get('/schedules'),
         apiClient.get('/schedules/upcoming'),
         apiClient.get('/history/stats?days=1'), // Stats for today
-        apiClient.get('/history?limit=5&sort=executed_at&order=DESC')
+        apiClient.get('/history?limit=5&sort=executed_at&order=DESC'),
+        apiClient.get('/queue/stats').catch(() => ({ data: { data: null } })),
+        apiClient.get('/queue/active').catch(() => ({ data: { data: [] } }))
       ]);
 
       // Set stats
@@ -44,6 +48,10 @@ export default function Dashboard() {
 
       // Set recent executions
       setRecentExecutions(executionsRes.data.data?.executions || []);
+
+      // Set queue stats
+      setQueueStats(queueRes.data.data);
+      setActiveJobs(jobsRes.data.data || []);
 
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -149,6 +157,137 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* Queue Stats - New Widget */}
+          {queueStats && (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden shadow rounded-lg border-l-4 border-blue-500">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="text-2xl">⏳</span>
+                    </div>
+                    <div className="ml-4 w-0 flex-1">
+                      <dl>
+                        <dt className="text-xs font-medium text-blue-700 truncate uppercase">
+                          Waiting
+                        </dt>
+                        <dd className="text-2xl font-bold text-blue-900">
+                          {queueStats.waiting}
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 overflow-hidden shadow rounded-lg border-l-4 border-yellow-500">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="text-2xl">🔄</span>
+                    </div>
+                    <div className="ml-4 w-0 flex-1">
+                      <dl>
+                        <dt className="text-xs font-medium text-yellow-700 truncate uppercase">
+                          Active
+                        </dt>
+                        <dd className="text-2xl font-bold text-yellow-900">
+                          {queueStats.active}
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-green-100 overflow-hidden shadow rounded-lg border-l-4 border-green-500">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="text-2xl">✅</span>
+                    </div>
+                    <div className="ml-4 w-0 flex-1">
+                      <dl>
+                        <dt className="text-xs font-medium text-green-700 truncate uppercase">
+                          Completed
+                        </dt>
+                        <dd className="text-2xl font-bold text-green-900">
+                          {queueStats.completed}
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-red-50 to-red-100 overflow-hidden shadow rounded-lg border-l-4 border-red-500">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="text-2xl">❌</span>
+                    </div>
+                    <div className="ml-4 w-0 flex-1">
+                      <dl>
+                        <dt className="text-xs font-medium text-red-700 truncate uppercase">
+                          Failed
+                        </dt>
+                        <dd className="text-2xl font-bold text-red-900">
+                          {queueStats.failed}
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 overflow-hidden shadow rounded-lg border-l-4 border-purple-500">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="text-2xl">📊</span>
+                    </div>
+                    <div className="ml-4 w-0 flex-1">
+                      <dl>
+                        <dt className="text-xs font-medium text-purple-700 truncate uppercase">
+                          Total
+                        </dt>
+                        <dd className="text-2xl font-bold text-purple-900">
+                          {queueStats.total}
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Active Jobs Widget */}
+          {activeJobs.length > 0 && (
+            <div className="bg-white shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  🔄 Currently Running Jobs ({activeJobs.length})
+                </h3>
+                <div className="space-y-3">
+                  {activeJobs.map((job: any) => (
+                    <div key={job.id} className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">
+                          {job.data.scheduleName}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Job ID: {job.id} • Attempt {job.attemptsMade + 1}
+                        </p>
+                      </div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Recent Executions */}
           <div className="bg-white shadow rounded-lg">

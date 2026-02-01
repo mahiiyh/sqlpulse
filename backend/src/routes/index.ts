@@ -6,6 +6,7 @@ import scheduleRoutes from './schedule.routes';
 import executionRoutes from './execution.routes';
 import historyRoutes from './history.routes';
 import dependencyRoutes from './dependency.routes';
+import queueRoutes from './queue.routes';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/queries', queryRoutes);
 router.use('/schedules', scheduleRoutes);
 router.use('/executions', executionRoutes);
 router.use('/history', historyRoutes);
+router.use('/queue', queueRoutes);
 router.use(dependencyRoutes);
 
 export default router;

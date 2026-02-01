@@ -44,16 +44,20 @@ interface Props {
 export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpdate }: Props) {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [dependencies, setDependencies] = useState<Dependency[]>([]);
+  const [executionHistory, setExecutionHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'retry' | 'notifications' | 'dependencies'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'retry' | 'notifications' | 'dependencies' | 'history'>('details');
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (isOpen && scheduleId) {
       fetchScheduleDetails();
       fetchDependencies();
+      if (activeTab === 'history') {
+        fetchExecutionHistory();
+      }
     }
-  }, [isOpen, scheduleId]);
+  }, [isOpen, scheduleId, activeTab]);
 
   const fetchScheduleDetails = async () => {
     if (!scheduleId) return;
@@ -77,6 +81,17 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
       setDependencies(response.data || []);
     } catch (error) {
       console.error('Failed to fetch dependencies:', error);
+    }
+  };
+
+  const fetchExecutionHistory = async () => {
+    if (!scheduleId) return;
+    
+    try {
+      const response = await apiClient.get(`/schedules/${scheduleId}/history?limit=20`);
+      setExecutionHistory(response.data.data?.executions || []);
+    } catch (error) {
+      console.error('Failed to fetch execution history:', error);
     }
   };
 
@@ -134,7 +149,7 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
 
           {/* Tabs */}
           <div className="flex gap-4 mt-4 border-b">
-            {(['details', 'retry', 'notifications', 'dependencies'] as const).map((tab) => (
+            {(['details', 'retry', 'notifications', 'dependencies', 'history'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -427,6 +442,96 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
                               Remove
                             </button>
                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium">Execution History</h3>
+                    <button 
+                      onClick={fetchExecutionHistory}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      🔄 Refresh
+                    </button>
+                  </div>
+
+                  {executionHistory.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No execution history yet. Run this schedule to see results here.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {executionHistory.map((execution: any) => (
+                        <div 
+                          key={execution.id} 
+                          className={`border rounded-lg p-4 ${
+                            execution.status === 'success' 
+                              ? 'border-green-200 bg-green-50' 
+                              : execution.status === 'failed'
+                              ? 'border-red-200 bg-red-50'
+                              : 'border-gray-200 bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">
+                                {execution.status === 'success' ? '✅' : 
+                                 execution.status === 'failed' ? '❌' : '⏳'}
+                              </span>
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {execution.query?.name || 'Unknown Query'}
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  {new Date(execution.executed_at).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              execution.status === 'success' 
+                                ? 'bg-green-100 text-green-800' 
+                                : execution.status === 'failed'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {execution.status.toUpperCase()}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-4 text-sm mt-3 pt-3 border-t border-gray-200">
+                            <div>
+                              <span className="text-gray-600">Duration:</span>
+                              <p className="font-medium">
+                                {execution.execution_time_ms ? `${execution.execution_time_ms}ms` : 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Rows:</span>
+                              <p className="font-medium">
+                                {execution.rows_affected || 0}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Connection:</span>
+                              <p className="font-medium text-xs">
+                                {execution.connection?.name || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {execution.error_message && (
+                            <div className="mt-3 pt-3 border-t border-red-200">
+                              <p className="text-xs text-red-700 font-mono">
+                                {execution.error_message}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -28,9 +28,17 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Only logout on 401 for auth endpoints, not for optional features like queue stats
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      const url = error.config?.url || '';
+      // Don't logout for optional endpoints that may not have full permissions
+      const optionalEndpoints = ['/queue/stats', '/queue/active', '/queue/failed'];
+      const isOptionalEndpoint = optionalEndpoints.some(endpoint => url.includes(endpoint));
+      
+      if (!isOptionalEndpoint) {
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
