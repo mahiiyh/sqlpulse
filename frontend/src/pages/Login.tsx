@@ -114,12 +114,6 @@ export default function Login() {
               )}
             </button>
           </div>
-
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Demo: admin@example.com / admin123
-            </p>
-          </div>
         </form>
       </div>
     </div>

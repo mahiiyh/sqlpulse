@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import Bull from 'bull';
 import cron from 'node-cron';
+import express, { Application } from 'express';
 import { logger } from './utils/logger';
 import { ScheduleManager } from './services/scheduleManager';
 import { QueryExecutor } from './services/queryExecutor';
@@ -8,6 +9,7 @@ import { QueryExecutor } from './services/queryExecutor';
 dotenv.config();
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const HEALTH_PORT = process.env.HEALTH_PORT || 3002;
 
 // Create Bull queue for query execution
 export const queryQueue = new Bull('query-execution', REDIS_URL, {
@@ -51,6 +53,36 @@ queryQueue.on('failed', (job, error) => {
 
 // Schedule manager to add jobs to queue
 const scheduleManager = new ScheduleManager(queryQueue);
+
+// Create Express app for health check
+const healthApp: Application = express();
+
+healthApp.get('/health', (_req, res) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    queue: {
+      waiting: 0,
+      active: 0,
+      completed: 0,
+      failed: 0
+    }
+  };
+
+  // Get queue stats asynchronously but don't wait for it
+  queryQueue.getJobCounts().then(counts => {
+    health.queue = counts;
+  }).catch(() => {
+    // If queue stats fail, still return ok status
+  });
+
+  res.json(health);
+});
+
+// Start health check server
+healthApp.listen(HEALTH_PORT, () => {
+  logger.info(`Health check endpoint available at http://localhost:${HEALTH_PORT}/health`);
+});
 
 // Start the scheduler
 const startScheduler = async () => {

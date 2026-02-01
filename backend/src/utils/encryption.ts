@@ -1,6 +1,14 @@
 import CryptoJS from 'crypto-js';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-me-in-production';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+if (!ENCRYPTION_KEY) {
+  throw new Error('ENCRYPTION_KEY environment variable is required');
+}
+
+if (ENCRYPTION_KEY.length !== 32) {
+  throw new Error('ENCRYPTION_KEY must be exactly 32 characters for AES-256 encryption');
+}
 
 export const encrypt = (text: string): string => {
   return CryptoJS.AES.encrypt(text, ENCRYPTION_KEY).toString();

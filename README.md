@@ -3,11 +3,20 @@
 <div align="center">
   
 ![SQLPulse](https://img.shields.io/badge/SQLPulse-SQL%20Management-blue?style=for-the-badge)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql)
+![Version](https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)
+  
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat&logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=flat&logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)
 
 **Real-time SQL workflow monitoring with intelligent query management and automation**
+
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 </div>
 
@@ -599,7 +608,19 @@ cat frontend/.env
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📚 Additional Documentation
+
+- 📖 [Quick Start Guide](QUICKSTART.md) - Get up and running in 5 minutes
+- 🏗️ [Architecture Documentation](ARCHITECTURE.md) - System design and components
+- 🚀 [Production Deployment](GITHUB_PRODUCTION_READY.md) - GitHub and production ready guide
+- ✅ [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Pre-deployment verification
+- 🔒 [Security Policy](SECURITY.md) - Security best practices and vulnerability reporting
+- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute
+- 📊 [Features Status](FEATURES.md) - Implementation progress
+- 🎨 [Brand Identity](BRAND_IDENTITY.md) - Design system and branding
+- 📝 [Changelog](CHANGELOG.md) - Version history
 
 ## 🙏 Acknowledgments
 
@@ -611,10 +632,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Support
 
-For issues, questions, or contributions:
-- Create an issue on GitHub
-- Email: support@example.com
-- Documentation: https://docs.example.com
+### Getting Help
+- 📖 Check the [documentation](QUICKSTART.md) first
+- 🐛 [Report bugs](https://github.com/yourusername/sqlpulse/issues/new?template=bug_report.md)
+- 💡 [Request features](https://github.com/yourusername/sqlpulse/issues/new?template=feature_request.md)
+- ❓ [Ask questions](https://github.com/yourusername/sqlpulse/issues/new?template=question.md)
+- 🔒 Security issues: See [SECURITY.md](SECURITY.md)
+
+### Community
+- GitHub Discussions: Community support and discussions
+- GitHub Issues: Bug reports and feature requests
+- Contributing: See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 

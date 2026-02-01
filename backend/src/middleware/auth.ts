@@ -15,7 +15,12 @@ export const authenticate = async (req: AuthRequest, _res: Response, next: NextF
       throw new AppError('Authentication required', 401);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new AppError('JWT_SECRET not configured', 500);
+    }
+
+    const decoded = jwt.verify(token, jwtSecret) as any;
     const user = await User.findByPk(decoded.id);
 
     if (!user || !user.is_active) {

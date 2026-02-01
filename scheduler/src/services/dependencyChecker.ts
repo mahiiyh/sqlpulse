@@ -1,7 +1,10 @@
 import { Sequelize, QueryTypes } from 'sequelize';
 import { logger } from '../utils/logger';
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://sqlquery_user:sqlquery_pass@localhost:5432/sqlquery_db';
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
 const sequelize = new Sequelize(DATABASE_URL, {
   dialect: 'postgres',
