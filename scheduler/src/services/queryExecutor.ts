@@ -6,8 +6,19 @@ import CryptoJS from 'crypto-js';
 import { NotificationService, NotificationChannel } from './notificationService';
 import { QueryParameterProcessor } from '../utils/queryParameters';
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://sqlquery_user:sqlquery_pass@localhost:5432/sqlquery_db';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-me';
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+const encryptionKeyEnv = process.env.ENCRYPTION_KEY;
+if (!encryptionKeyEnv) {
+  throw new Error('ENCRYPTION_KEY environment variable is required');
+}
+if (encryptionKeyEnv.length !== 32) {
+  throw new Error('ENCRYPTION_KEY must be exactly 32 characters for AES-256 encryption');
+}
+const ENCRYPTION_KEY: string = encryptionKeyEnv;
 
 const appSequelize = new Sequelize(DATABASE_URL, {
   dialect: 'postgres',
