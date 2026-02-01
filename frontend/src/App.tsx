@@ -8,6 +8,7 @@ import QueryEditor from './pages/QueryEditor';
 import Schedules from './pages/Schedules';
 import Connections from './pages/Connections';
 import ExecutionHistory from './pages/ExecutionHistory';
+import AdminUsers from './pages/AdminUsers';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -24,6 +25,7 @@ function App() {
         <Route path="/schedules" element={<Schedules />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/history" element={<ExecutionHistory />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
       </Route>
       
       {/* Catch-all route for undefined paths */}

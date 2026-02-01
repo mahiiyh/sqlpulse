@@ -2,7 +2,8 @@ import { Response, NextFunction } from 'express';
 import { Connection } from '../models/Connection';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
-import { encrypt } from '../utils/encryption'; // decrypt imported when needed
+import { encrypt } from '../utils/encryption';
+import { QueryExecutor } from '../services/queryExecutor';
 
 export const getConnections = async (_req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -118,13 +119,45 @@ export const deleteConnection = async (req: AuthRequest, res: Response, next: Ne
   }
 };
 
-export const testConnection = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+export const testConnection = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // TODO: Implement actual connection testing
-    res.json({
-      success: true,
-      message: 'Connection test successful'
-    });
+    const connection = await Connection.findByPk(req.params.id);
+
+    if (!connection) {
+      throw new AppError('Connection not found', 404);
+    }
+
+    // Test connection by executing a simple query
+    const startTime = Date.now();
+    let testQuery = 'SELECT 1';
+    
+    // Use database-specific test queries
+    if (connection.type.toLowerCase() === 'postgresql') {
+      testQuery = 'SELECT 1 as test';
+    } else if (connection.type.toLowerCase() === 'mysql') {
+      testQuery = 'SELECT 1 as test';
+    } else if (connection.type.toLowerCase() === 'sqlserver') {
+      testQuery = 'SELECT 1 as test';
+    }
+
+    try {
+      await QueryExecutor.execute(connection, testQuery);
+      const responseTime = Date.now() - startTime;
+
+      res.json({
+        success: true,
+        message: 'Connection test successful',
+        data: {
+          responseTime: responseTime,
+          connectionType: connection.type,
+          host: connection.host,
+          port: connection.port,
+          database: connection.database_name
+        }
+      });
+    } catch (execError: any) {
+      throw new AppError(`Connection test failed: ${execError.message}`, 400);
+    }
   } catch (error) {
     next(error);
   }

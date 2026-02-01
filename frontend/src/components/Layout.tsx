@@ -13,6 +13,11 @@ export default function Layout() {
     { name: 'History', path: '/history', icon: '📜' },
   ];
 
+  // Add Admin menu item if user is admin
+  if (user?.role === 'admin') {
+    navigation.push({ name: 'Admin', path: '/admin/users', icon: '👥' });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

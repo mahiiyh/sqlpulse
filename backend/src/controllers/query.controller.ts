@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { Query } from '../models/Query';
 import { Connection } from '../models/Connection';
 import { ExecutionHistory, ExecutionType, ExecutionStatus } from '../models/ExecutionHistory';
+import { QueryVersion } from '../models/QueryVersion';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { Op } from 'sequelize';
@@ -91,6 +92,15 @@ export const createQuery = async (req: AuthRequest, res: Response, next: NextFun
       created_by: req.user.id
     });
 
+    // Create initial version
+    await QueryVersion.create({
+      query_id: query.id,
+      version_number: 1,
+      sql_content: query.sql_content,
+      change_description: 'Initial version',
+      created_by: req.user.id
+    });
+
     res.status(201).json({
       success: true,
       data: query
@@ -110,6 +120,21 @@ export const updateQuery = async (req: AuthRequest, res: Response, next: NextFun
 
     if (query.created_by !== req.user.id) {
       throw new AppError('Access denied', 403);
+    }
+
+    // If SQL content changed, create a new version
+    if (req.body.sql_content && req.body.sql_content !== query.sql_content) {
+      const maxVersion = await QueryVersion.max('version_number', {
+        where: { query_id: query.id }
+      }) as number || 0;
+
+      await QueryVersion.create({
+        query_id: query.id,
+        version_number: maxVersion + 1,
+        sql_content: req.body.sql_content,
+        change_description: req.body.change_description || 'Query updated',
+        created_by: req.user.id
+      });
     }
 
     await query.update(req.body);
