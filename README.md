@@ -1,13 +1,13 @@
-# QueryFlow - Modern SQL Query Management & Automation
+# SQLPulse - Real-time SQL Query Management & Automation
 
 <div align="center">
   
-![QueryFlow](https://img.shields.io/badge/QueryFlow-SQL%20Management-blue?style=for-the-badge)
+![SQLPulse](https://img.shields.io/badge/SQLPulse-SQL%20Management-blue?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql)
 
-**Streamline your SQL workflow with intelligent query management, automation, and monitoring**
+**Real-time SQL workflow monitoring with intelligent query management and automation**
 
 </div>
 

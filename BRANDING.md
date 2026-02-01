@@ -1,23 +1,23 @@
-# QueryFlow - Brand Guidelines
+# SQLPulse - Brand Guidelines
 
 ## Brand Identity
 
-**Name:** QueryFlow
-**Tagline:** Modern SQL Query Management & Automation
+**Name:** SQLPulse
+**Tagline:** Real-time SQL Query Management & Automation
 
 ## Visual Identity
 
 ### Logo
-- **Primary Logo:** Letter "Q" in a gradient-filled rounded square
-- **Gradient:** Blue (#3B82F6) to Purple (#9333EA)
+- **Primary Logo:** Letter "S" in a gradient-filled rounded square
+- **Gradient:** Blue (#3B82F6) to Cyan (#06B6D4)
 - **Shape:** Rounded square (border-radius: 0.5rem)
 
 ### Color Palette
 
 **Primary Colors:**
 - Blue: #3B82F6 (rgb(59, 130, 246))
-- Purple: #9333EA (rgb(147, 51, 234))
-- Gradient: from-blue-600 to-purple-600
+- Cyan: #06B6D4 (rgb(6, 182, 212))
+- Gradient: from-blue-600 to-cyan-600
 
 **Status Colors:**
 - Success: #10B981 (Emerald)
@@ -91,14 +91,14 @@
 
 ### Gradient Text
 ```html
-<h1 class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-  QueryFlow
+<h1 class="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+  SQLPulse
 </h1>
 ```
 
 ### Gradient Button
 ```html
-<button class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+<button class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
   Get Started
 </button>
 ```

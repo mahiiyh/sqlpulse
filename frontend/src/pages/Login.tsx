@@ -35,15 +35,15 @@ export default function Login() {
         {/* Logo & Branding */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-3xl font-bold">Q</span>
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-3xl font-bold">S</span>
             </div>
           </div>
-          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            QueryFlow
+          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            SQLPulse
           </h1>
           <p className="mt-3 text-gray-600 font-medium">
-            Modern SQL Query Management & Automation
+            Real-time SQL Query Management & Automation
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all duration-200"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all duration-200"
             >
               {isLoading ? (
                 <div className="flex items-center">

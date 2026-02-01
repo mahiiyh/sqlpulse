@@ -1,5 +1,5 @@
 {
-  "name": "queryflow",
+  "name": "sqlpulse",
   "version": "2.0.0",
   "description": "Modern SQL Query Management & Automation Platform",
   "private": true,
