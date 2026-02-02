@@ -41,7 +41,17 @@ export class ScheduleManager {
       logger.info('Database connection established for scheduler');
     } catch (error) {
       logger.error('Failed to connect to database:', error);
-      throw error;
+      logger.info('Retrying database connection in 10 seconds...');
+      // Don't throw error immediately, allow retry logic
+      setTimeout(async () => {
+        try {
+          await this.sequelize.authenticate();
+          logger.info('Database connection established for scheduler (retry successful)');
+        } catch (retryError) {
+          logger.error('Database connection retry failed:', retryError);
+          throw retryError;
+        }
+      }, 10000);
     }
   }
 

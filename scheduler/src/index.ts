@@ -89,8 +89,25 @@ const startScheduler = async () => {
   try {
     logger.info('🚀 Starting SQL Query Scheduler Worker...');
 
-    // Initialize schedule manager
-    await scheduleManager.initialize();
+    // Initialize schedule manager with retry logic
+    let retries = 5;
+    let initialized = false;
+    
+    while (retries > 0 && !initialized) {
+      try {
+        await scheduleManager.initialize();
+        initialized = true;
+      } catch (error) {
+        retries--;
+        if (retries > 0) {
+          logger.warn(`Database initialization failed, ${retries} retries remaining. Waiting 10 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 10000));
+        } else {
+          logger.error('Failed to initialize database after all retries');
+          throw error;
+        }
+      }
+    }
 
     // Scan for due schedules every minute
     cron.schedule('* * * * *', async () => {

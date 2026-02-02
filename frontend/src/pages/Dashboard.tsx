@@ -600,7 +600,7 @@ export default function Dashboard() {
                       {recentExecutions.map((execution: any) => (
                         <tr key={execution.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {execution.query?.query_name || 'N/A'}
+                            {execution.query?.name || 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
