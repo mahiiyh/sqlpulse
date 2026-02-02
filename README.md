@@ -16,9 +16,23 @@
 
 **Real-time SQL workflow monitoring with intelligent query management and automation**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
+[Live Demo](https://sqlpulse.pages.dev) • [Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 </div>
+
+---
+
+## 🌐 Production Deployment
+
+**Live Application:** https://sqlpulse.pages.dev
+
+**Infrastructure:**
+- 🎨 **Frontend**: Cloudflare Pages (Global CDN)
+- ⚡ **Backend API**: Railway (Auto-scaling)
+- ⏰ **Scheduler**: Railway (Background jobs)
+- 🗄️ **Database**: Neon PostgreSQL (Serverless)
+- 🔄 **Cache**: Railway Redis
+- 🚀 **CI/CD**: GitHub Actions (Auto-deploy on push)
 
 ---
 
@@ -175,7 +189,79 @@ Trigger notifications on:
 - **Docker** & **Docker Compose**
 - **Nginx** for reverse proxy
 
-## 📦 Installation
+## 📦 Quick Start
+
+### Option 1: Local Development (Docker)
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/sqlpulse.git
+cd sqlpulse
+
+# Start all services with Docker Compose
+docker-compose up -d
+
+# Access the application
+open http://localhost:3000
+```
+
+**Default credentials:**
+- Username: `admin`
+- Password: `admin123`
+- ⚠️ Change immediately after first login!
+
+### Option 2: Manual Setup
+
+**Prerequisites:** Node.js 18+, PostgreSQL 14+, Redis 7+
+
+```bash
+# Install dependencies
+npm run install-all
+
+# Set up environment variables
+cp backend/.env.example backend/.env
+cp scheduler/.env.example scheduler/.env
+cp frontend/.env.example frontend/.env
+
+# Edit .env files with your database credentials
+
+# Start PostgreSQL and Redis (or use Docker)
+docker-compose up -d postgres redis
+
+# Run database migrations
+cd backend && npm run migrate
+
+# Start all services
+npm run dev
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- API Health: http://localhost:3001/api/health
+
+---
+
+## 🚀 Deployment
+
+### Production Deployment (Current Setup)
+
+**Automated CI/CD Pipeline:**
+1. Push code to `main` branch
+2. GitHub Actions automatically:
+   - Runs tests and builds
+   - Deploys frontend to Cloudflare Pages
+   - Deploys backend to Railway
+   - Deploys scheduler to Railway
+
+**Manual Deployment:**
+
+See [CUSTOM-DOMAIN-SETUP.md](CUSTOM-DOMAIN-SETUP.md) for detailed deployment guide including:
+- Custom domain configuration
+- SSL setup
+- Environment variables
+- Database migrations
+- Monitoring setup
 
 ### Prerequisites
 - Node.js 18+ and npm 9+
@@ -606,43 +692,56 @@ cat frontend/.env
 # Check browser console for errors
 ```
 
+## � Documentation
+
+- 🏗️ [Architecture & Project Structure](ARCHITECTURE.md) - System design and folder structure
+- 🌐 [Custom Domain Setup](CUSTOM-DOMAIN-SETUP.md) - Production deployment with custom domain
+- 🔒 [Security Policy](SECURITY.md) - Security best practices
+- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute
+- 📝 [Changelog](CHANGELOG.md) - Version history
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Problem**: Cannot connect to database
+```bash
+# Check PostgreSQL is running
+docker-compose ps postgres
+
+# Test connection
+docker-compose exec postgres psql -U sqlquery_user -d sqlquery_db
+```
+
+**Problem**: Scheduler not executing jobs
+```bash
+# Check Redis is running
+docker-compose ps redis
+
+# Check scheduler logs
+docker-compose logs -f scheduler
+```
+
+**Problem**: Frontend not connecting to backend
+```bash
+# Check backend health
+curl http://localhost:3001/api/health
+
+# Check VITE_API_BASE_URL in frontend/.env
+```
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📚 Additional Documentation
-
-- 📖 [Quick Start Guide](QUICKSTART.md) - Get up and running in 5 minutes
-- 🏗️ [Architecture Documentation](ARCHITECTURE.md) - System design and components
-- 🚀 [Production Deployment](GITHUB_PRODUCTION_READY.md) - GitHub and production ready guide
-- ✅ [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Pre-deployment verification
-- 🔒 [Security Policy](SECURITY.md) - Security best practices and vulnerability reporting
-- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute
-- 📊 [Features Status](FEATURES.md) - Implementation progress
-- 🎨 [Brand Identity](BRAND_IDENTITY.md) - Design system and branding
-- 📝 [Changelog](CHANGELOG.md) - Version history
-
-## 🙏 Acknowledgments
-
-- Built with [React](https://reactjs.org/)
-- Powered by [Express](https://expressjs.com/)
-- SQL editing by [Monaco Editor](https://microsoft.github.io/monaco-editor/)
-- Job queue by [Bull](https://optimalbits.github.io/bull/)
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-
 ## 📞 Support
 
-### Getting Help
-- 📖 Check the [documentation](QUICKSTART.md) first
 - 🐛 [Report bugs](https://github.com/yourusername/sqlpulse/issues/new?template=bug_report.md)
 - 💡 [Request features](https://github.com/yourusername/sqlpulse/issues/new?template=feature_request.md)
 - ❓ [Ask questions](https://github.com/yourusername/sqlpulse/issues/new?template=question.md)
 - 🔒 Security issues: See [SECURITY.md](SECURITY.md)
-
-### Community
-- GitHub Discussions: Community support and discussions
-- GitHub Issues: Bug reports and feature requests
-- Contributing: See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
