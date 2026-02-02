@@ -1,0 +1,117 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: sqlpulse-postgres
+    plan: free
+    region: oregon
+    ipAllowList: []
+
+  # Redis
+  - type: redis
+    name: sqlpulse-redis
+    plan: free
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+  # Backend Service
+  - type: web
+    name: sqlpulse-backend
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DB_HOST
+        fromDatabase:
+          name: sqlpulse-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: sqlpulse-postgres
+          property: port
+      - key: DB_NAME
+        value: sqlquery_db
+      - key: DB_USER
+        value: sqlquery_user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: sqlpulse-postgres
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          name: sqlpulse-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: sqlpulse-redis
+          type: redis
+          property: port
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: LOG_LEVEL
+        value: info
+
+  # Scheduler Service
+  - type: web
+    name: sqlpulse-scheduler
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./scheduler/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3002
+      - key: DB_HOST
+        fromDatabase:
+          name: sqlpulse-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: sqlpulse-postgres
+          property: port
+      - key: DB_NAME
+        value: sqlquery_db
+      - key: DB_USER
+        value: sqlquery_user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: sqlpulse-postgres
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          name: sqlpulse-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: sqlpulse-redis
+          type: redis
+          property: port
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: LOG_LEVEL
+        value: info
+
+  # Frontend Service
+  - type: web
+    name: sqlpulse-frontend
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://sqlpulse-backend.onrender.com/api

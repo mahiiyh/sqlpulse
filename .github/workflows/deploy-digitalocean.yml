@@ -1,0 +1,81 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com
+  IMAGE_NAME: sqlpulse
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Build and push images to DigitalOcean Container Registry
+        run: |
+          doctl registry login
+          
+          # Build and push backend
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }} \
+                       -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest \
+                       ./backend
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+          
+          # Build and push scheduler
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/scheduler:${{ github.sha }} \
+                       -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/scheduler:latest \
+                       ./scheduler
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/scheduler:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/scheduler:latest
+          
+          # Build and push frontend
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} \
+                       -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest \
+                       --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+                       ./frontend
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+
+      - name: Deploy to DigitalOcean Droplet
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd /opt/sqlpulse
+            
+            # Pull latest images
+            doctl registry login
+            docker compose -f docker-compose.prod.yml pull
+            
+            # Restart services
+            docker compose -f docker-compose.prod.yml up -d --no-build
+            
+            # Clean up old images
+            docker image prune -af
+
+      - name: Verify deployment
+        run: |
+          sleep 30
+          curl -f https://${{ secrets.PRODUCTION_DOMAIN }}/api/health || exit 1
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Check the logs above."
