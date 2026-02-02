@@ -86,11 +86,25 @@ export const getQuery = async (req: AuthRequest, res: Response, next: NextFuncti
 };
 
 export const createQuery = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const t = await Query.sequelize!.transaction();
+  
   try {
+    // Validate required fields
+    const { name, sql_content, category, database_type } = req.body;
+    
+    if (!name || !sql_content || !category || !database_type) {
+      throw new AppError('Missing required fields: name, sql_content, category, and database_type are required', 400);
+    }
+
+    if (typeof sql_content !== 'string' || sql_content.trim().length === 0) {
+      throw new AppError('sql_content must be a non-empty string', 400);
+    }
+
+    // Create query and initial version in a transaction
     const query = await Query.create({
       ...req.body,
       created_by: req.user.id
-    });
+    }, { transaction: t });
 
     // Create initial version
     await QueryVersion.create({
@@ -99,33 +113,49 @@ export const createQuery = async (req: AuthRequest, res: Response, next: NextFun
       sql_content: query.sql_content,
       change_description: 'Initial version',
       created_by: req.user.id
-    });
+    }, { transaction: t });
+
+    await t.commit();
 
     res.status(201).json({
       success: true,
       data: query
     });
   } catch (error) {
+    await t.rollback();
     next(error);
   }
 };
 
 export const updateQuery = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const t = await Query.sequelize!.transaction();
+  
   try {
-    const query = await Query.findByPk(req.params.id);
+    const query = await Query.findByPk(req.params.id, { transaction: t });
 
     if (!query) {
+      await t.rollback();
       throw new AppError('Query not found', 404);
     }
 
     if (query.created_by !== req.user.id) {
+      await t.rollback();
       throw new AppError('Access denied', 403);
+    }
+
+    // Validate sql_content if provided
+    if (req.body.sql_content !== undefined) {
+      if (typeof req.body.sql_content !== 'string' || req.body.sql_content.trim().length === 0) {
+        await t.rollback();
+        throw new AppError('sql_content must be a non-empty string', 400);
+      }
     }
 
     // If SQL content changed, create a new version
     if (req.body.sql_content && req.body.sql_content !== query.sql_content) {
       const maxVersion = await QueryVersion.max('version_number', {
-        where: { query_id: query.id }
+        where: { query_id: query.id },
+        transaction: t
       }) as number || 0;
 
       await QueryVersion.create({
@@ -134,16 +164,19 @@ export const updateQuery = async (req: AuthRequest, res: Response, next: NextFun
         sql_content: req.body.sql_content,
         change_description: req.body.change_description || 'Query updated',
         created_by: req.user.id
-      });
+      }, { transaction: t });
     }
 
-    await query.update(req.body);
+    await query.update(req.body, { transaction: t });
+    
+    await t.commit();
 
     res.json({
       success: true,
       data: query
     });
   } catch (error) {
+    await t.rollback();
     next(error);
   }
 };

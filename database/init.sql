@@ -56,6 +56,18 @@ CREATE TABLE IF NOT EXISTS queries (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- Query versions table (for version control)
+CREATE TABLE IF NOT EXISTS query_versions (
+  id SERIAL PRIMARY KEY,
+  query_id INTEGER NOT NULL REFERENCES queries(id) ON DELETE CASCADE,
+  version_number INTEGER NOT NULL,
+  sql_content TEXT NOT NULL,
+  change_description TEXT,
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT unique_query_version UNIQUE (query_id, version_number)
+);
+
 -- Query tags table
 CREATE TABLE IF NOT EXISTS query_tags (
   id SERIAL PRIMARY KEY,
@@ -149,6 +161,9 @@ CREATE TABLE IF NOT EXISTS notification_channels (
 CREATE INDEX IF NOT EXISTS idx_queries_created_by ON queries(created_by);
 CREATE INDEX IF NOT EXISTS idx_queries_category ON queries(category);
 CREATE INDEX IF NOT EXISTS idx_queries_database_type ON queries(database_type);
+
+CREATE INDEX IF NOT EXISTS idx_query_versions_query_id ON query_versions(query_id);
+CREATE INDEX IF NOT EXISTS idx_query_versions_created_at ON query_versions(created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_schedules_query_id ON schedules(query_id);
 CREATE INDEX IF NOT EXISTS idx_schedules_connection_id ON schedules(connection_id);
