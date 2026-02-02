@@ -6,6 +6,15 @@ const databaseUrl = process.env.DATABASE_URL || 'postgresql://sqlquery_user:sqlq
 export const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',
   logging: (msg) => logger.debug(msg),
+  dialectOptions: {
+    ssl: process.env.NODE_ENV === 'production' ? {
+      require: true,
+      rejectUnauthorized: false
+    } : false,
+    // Force IPv4 connection
+    host: process.env.DATABASE_URL ? undefined : 'localhost',
+    family: 4
+  },
   pool: {
     max: 20,
     min: 5,
