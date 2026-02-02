@@ -12,6 +12,7 @@ primary_region = 'nrt'
 [env]
   NODE_ENV = 'production'
   PORT = '8080'
+  NODE_OPTIONS = '--dns-result-order=ipv4first'
 
 [[services]]
   protocol = 'tcp'
