@@ -9,7 +9,7 @@ import { QueryExecutor } from './services/queryExecutor';
 dotenv.config();
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-const HEALTH_PORT = process.env.HEALTH_PORT || 3002;
+const HEALTH_PORT = process.env.PORT || process.env.HEALTH_PORT || 3002;
 
 // Create Bull queue for query execution
 export const queryQueue = new Bull('query-execution', REDIS_URL, {
@@ -79,9 +79,9 @@ healthApp.get('/health', (_req: express.Request, res: express.Response) => {
   res.json(health);
 });
 
-// Start health check server
-healthApp.listen(HEALTH_PORT, () => {
-  logger.info(`Health check endpoint available at http://localhost:${HEALTH_PORT}/health`);
+// Start health check server - bind to 0.0.0.0 for Fly.io
+healthApp.listen(Number(HEALTH_PORT), '0.0.0.0', () => {
+  logger.info(`Health check endpoint available at http://0.0.0.0:${HEALTH_PORT}/health`);
 });
 
 // Start the scheduler

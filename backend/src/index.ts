@@ -44,9 +44,9 @@ const startServer = async () => {
     // Sequelize sync disabled to avoid conflicts with existing schema
     logger.info('Using existing database schema from init.sql');
 
-    // Start server
-    app.listen(PORT, () => {
-      logger.info(`🚀 Backend server running on port ${PORT}`);
+    // Start server - bind to 0.0.0.0 for Fly.io
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      logger.info(`🚀 Backend server running on 0.0.0.0:${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
     });
   } catch (error) {
