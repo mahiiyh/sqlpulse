@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { 
-  Database, 
   Zap, 
   Shield, 
   GitBranch, 
@@ -15,11 +14,12 @@ import {
   Users,
   ChevronRight
 } from 'lucide-react';
+import Logo from '../components/Logo';
 
 export default function LandingPage() {
   const features = [
     {
-      icon: <Database className="w-8 h-8" />,
+      icon: <Server className="w-8 h-8" />,
       title: 'Multi-Database Support',
       description: 'Connect to PostgreSQL, MySQL, SQL Server, and more. Manage all your databases from one unified interface.'
     },
@@ -111,12 +111,9 @@ export default function LandingPage() {
       <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg p-2">
-                <Database className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">SQLPulse</span>
-            </div>
+            <Link to="/" className="flex items-center">
+              <Logo size="md" animated={true} showText={true} />
+            </Link>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Features</a>
               <a href="#benefits" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Benefits</a>
@@ -125,7 +122,7 @@ export default function LandingPage() {
             </div>
             <Link 
               to="/login" 
-              className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition flex items-center space-x-2"
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-2 rounded-lg font-medium transition flex items-center space-x-2 shadow-md hover:shadow-lg"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
@@ -137,7 +134,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="pt-20 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center space-x-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-8">
+<div className="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium mb-8">
             <Zap className="w-4 h-4" />
             <span>Now in Production · sqlpulse.io</span>
           </div>
@@ -145,7 +142,7 @@ export default function LandingPage() {
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
             Automate Your SQL
             <br />
-            <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent">
               Queries & Schedules
             </span>
           </h1>
@@ -158,14 +155,14 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link 
               to="/login" 
-              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition inline-flex items-center justify-center space-x-2"
+              className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 hover:from-blue-700 hover:via-cyan-700 hover:to-blue-800 text-white px-8 py-4 rounded-lg font-semibold text-lg transition inline-flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
             >
               <span>Start Free</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
             <a 
               href="#features" 
-              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-primary-500 dark:hover:border-primary-500 text-gray-700 dark:text-gray-200 px-8 py-4 rounded-lg font-semibold text-lg transition inline-flex items-center justify-center space-x-2"
+              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-cyan-500 text-gray-700 dark:text-gray-200 px-8 py-4 rounded-lg font-semibold text-lg transition inline-flex items-center justify-center space-x-2"
             >
               <span>Explore Features</span>
               <ChevronRight className="w-5 h-5" />
@@ -175,19 +172,19 @@ export default function LandingPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">99.9%</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent mb-2">99.9%</div>
               <div className="text-gray-600 dark:text-gray-400">Uptime</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">10k+</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent mb-2">10k+</div>
               <div className="text-gray-600 dark:text-gray-400">Queries/day</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">5ms</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent mb-2">5ms</div>
               <div className="text-gray-600 dark:text-gray-400">Avg Response</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">100%</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 bg-clip-text text-transparent mb-2">100%</div>
               <div className="text-gray-600 dark:text-gray-400">Open Source</div>
             </div>
           </div>
@@ -210,9 +207,9 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 transition group"
+                className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-cyan-500 transition group"
               >
-                <div className="text-primary-600 dark:text-primary-400 mb-4 group-hover:scale-110 transition">
+                <div className="text-blue-600 dark:text-cyan-400 mb-4 group-hover:scale-110 transition">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
@@ -228,7 +225,7 @@ export default function LandingPage() {
       </section>
 
       {/* Benefits Section */}
-      <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
+      <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-800/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -246,8 +243,8 @@ export default function LandingPage() {
                 className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md transition"
               >
                 <div className="flex items-start space-x-4">
-                  <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-lg flex-shrink-0">
-                    <CheckCircle2 className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                  <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-lg flex-shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -279,7 +276,7 @@ export default function LandingPage() {
               <div className="space-y-4">
                 {useCases.map((useCase, index) => (
                   <div key={index} className="flex items-center space-x-3">
-                    <CheckCircle2 className="w-6 h-6 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-blue-600 dark:text-cyan-400 flex-shrink-0" />
                     <span className="text-gray-700 dark:text-gray-300 text-lg">{useCase}</span>
                   </div>
                 ))}
@@ -327,7 +324,7 @@ export default function LandingPage() {
       <section id="guides" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center space-x-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <BookOpen className="w-4 h-4" />
               <span>Documentation & Guides</span>
             </div>
@@ -344,15 +341,15 @@ export default function LandingPage() {
               <a
                 key={index}
                 href={guide.link}
-                className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 transition group"
+                className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-cyan-500 transition group"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4">
-                    <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-lg text-primary-600 dark:text-primary-400 group-hover:scale-110 transition">
+                    <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-lg text-blue-600 dark:text-cyan-400 group-hover:scale-110 transition">
                       {guide.icon}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">
                         {guide.title}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
@@ -360,7 +357,7 @@ export default function LandingPage() {
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 group-hover:translate-x-1 transition" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 group-hover:translate-x-1 transition" />
                 </div>
               </a>
             ))}
@@ -371,7 +368,7 @@ export default function LandingPage() {
               href="https://github.com/mahiiyh/sqlpulse" 
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+              className="inline-flex items-center space-x-2 text-blue-600 dark:text-cyan-400 hover:text-blue-700 dark:hover:text-cyan-300 font-medium"
             >
               <span>View full documentation on GitHub</span>
               <ArrowRight className="w-4 h-4" />
@@ -381,22 +378,22 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary-600 to-primary-700">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Ready to Automate Your SQL?
           </h2>
-          <p className="text-xl text-primary-100 mb-8">
+          <p className="text-xl text-blue-100 mb-8">
             Join developers and teams using SQLPulse to streamline their database workflows.
           </p>
           <Link 
             to="/login" 
-            className="bg-white hover:bg-gray-100 text-primary-600 px-8 py-4 rounded-lg font-semibold text-lg transition inline-flex items-center space-x-2"
+            className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg transition inline-flex items-center space-x-2 shadow-lg hover:shadow-xl"
           >
             <span>Get Started Free</span>
             <ArrowRight className="w-5 h-5" />
           </Link>
-          <p className="text-primary-200 text-sm mt-4">
+          <p className="text-blue-200 text-sm mt-4">
             No credit card required · Free tier available · Open source
           </p>
         </div>
@@ -407,15 +404,12 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg p-2">
-                  <Database className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-white">SQLPulse</span>
+              <Logo size="md" animated={false} showText={true} />
+              <div className="mt-4">
+                <p className="text-sm text-gray-400">
+                  Modern SQL query management and scheduling platform.
+                </p>
               </div>
-              <p className="text-sm text-gray-400">
-                Modern SQL query management and scheduling platform.
-              </p>
             </div>
             
             <div>
