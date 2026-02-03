@@ -4,7 +4,6 @@ import { Schedule } from '../models/Schedule';
 import { Query } from '../models/Query';
 import { Connection } from '../models/Connection';
 import { ExecutionHistory } from '../models/ExecutionHistory';
-import ScheduleDependency from '../models/ScheduleDependency';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { calculateNextRun } from '../utils/cronUtils';
@@ -129,21 +128,6 @@ export const deleteSchedule = async (req: AuthRequest, res: Response, next: Next
         schedule_id: schedule.id
       }
     });
-
-    // Delete associated schedule dependencies (if table exists)
-    try {
-      await ScheduleDependency.destroy({
-        where: {
-          [Op.or]: [
-            { schedule_id: schedule.id },
-            { depends_on_schedule_id: schedule.id }
-          ]
-        }
-      });
-    } catch (depError) {
-      // Table might not exist yet, continue with deletion
-      console.log('Schedule dependencies cleanup skipped:', depError);
-    }
 
     // Now safe to delete the schedule
     await schedule.destroy();
