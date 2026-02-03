@@ -72,7 +72,7 @@ sqlpulse/
 ┌─────────────────────────────────────┐
 │   Frontend (React + Vite)           │
 │   Deployed on: Cloudflare Pages     │
-│   URL: sqlpulse.pages.dev           │
+│   URL: sqlpulse.mahiiyh.me          │
 └──────────────┬──────────────────────┘
                │ HTTPS/REST API
 ┌──────────────▼──────────────────────┐

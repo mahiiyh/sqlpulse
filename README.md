@@ -16,7 +16,7 @@
 
 **Real-time SQL workflow monitoring with intelligent query management and automation**
 
-[Live Demo](https://sqlpulse.pages.dev) • [Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
+[Live Demo](https://sqlpulse.mahiiyh.me) • [Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 </div>
 
@@ -24,7 +24,7 @@
 
 ## 🌐 Production Deployment
 
-**Live Application:** https://sqlpulse.pages.dev
+**Live Application:** https://sqlpulse.mahiiyh.me
 
 **Infrastructure:**
 - 🎨 **Frontend**: Cloudflare Pages (Global CDN)
