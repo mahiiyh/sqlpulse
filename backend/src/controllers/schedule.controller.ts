@@ -4,7 +4,7 @@ import { Schedule } from '../models/Schedule';
 import { Query } from '../models/Query';
 import { Connection } from '../models/Connection';
 import { ExecutionHistory } from '../models/ExecutionHistory';
-import { ScheduleDependency } from '../models/ScheduleDependency';
+import ScheduleDependency from '../models/ScheduleDependency';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { calculateNextRun } from '../utils/cronUtils';
