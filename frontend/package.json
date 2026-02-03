@@ -11,20 +11,21 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "@monaco-editor/react": "^4.6.0",
-    "axios": "^1.6.2",
-    "zustand": "^4.4.7",
-    "react-query": "^3.39.3",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.1.1",
-    "date-fns": "^3.0.6",
-    "react-hot-toast": "^2.4.1",
-    "recharts": "^2.10.3",
+    "@monaco-editor/react": "^4.6.0",
+    "axios": "^1.6.2",
     "clsx": "^2.0.0",
-    "cronstrue": "^2.48.0"
+    "cronstrue": "^2.48.0",
+    "date-fns": "^3.0.6",
+    "lucide-react": "^0.563.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.20.1",
+    "recharts": "^2.10.3",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
