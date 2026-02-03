@@ -47,6 +47,8 @@ interface ConnectionData {
   database_name: string;
   username: string;
   encrypted_password: string;
+  timeout_seconds?: number;
+  max_connections?: number;
 }
 
 interface ScheduleData {
