@@ -130,15 +130,20 @@ export const deleteSchedule = async (req: AuthRequest, res: Response, next: Next
       }
     });
 
-    // Delete associated schedule dependencies
-    await ScheduleDependency.destroy({
-      where: {
-        [Op.or]: [
-          { schedule_id: schedule.id },
-          { depends_on_schedule_id: schedule.id }
-        ]
-      }
-    });
+    // Delete associated schedule dependencies (if table exists)
+    try {
+      await ScheduleDependency.destroy({
+        where: {
+          [Op.or]: [
+            { schedule_id: schedule.id },
+            { depends_on_schedule_id: schedule.id }
+          ]
+        }
+      });
+    } catch (depError) {
+      // Table might not exist yet, continue with deletion
+      console.log('Schedule dependencies cleanup skipped:', depError);
+    }
 
     // Now safe to delete the schedule
     await schedule.destroy();
