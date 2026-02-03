@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://sqlpulse.io/sitemap.xml
+Sitemap: https://sqlpulse.mahiiyh.me/sitemap.xml
