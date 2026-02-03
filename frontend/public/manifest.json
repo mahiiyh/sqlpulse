@@ -1,0 +1,18 @@
+{
+  "name": "SQLPulse - SQL Query Management & Automation",
+  "short_name": "SQLPulse",
+  "description": "Modern SQL query management platform for developers and teams. Schedule, execute, and monitor database queries.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
