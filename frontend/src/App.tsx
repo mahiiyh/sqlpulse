@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import Layout from './components/Layout';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import QueryLibrary from './pages/QueryLibrary';
@@ -17,10 +18,13 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
+      {/* Public landing page */}
+      <Route path="/" element={!isAuthenticated ? <LandingPage /> : <Navigate to="/dashboard" />} />
+      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
       
+      {/* Protected app routes */}
       <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/queries" element={<QueryLibrary />} />
         <Route path="/queries/new" element={<QueryEditor />} />
         <Route path="/queries/:id" element={<QueryEditor />} />
@@ -33,7 +37,7 @@ function App() {
       </Route>
       
       {/* Catch-all route for undefined paths */}
-      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
     </Routes>
   );
 }
