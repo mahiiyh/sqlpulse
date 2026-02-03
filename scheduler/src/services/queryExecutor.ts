@@ -294,8 +294,14 @@ export class QueryExecutor {
       user: connection.username,
       password: this.decrypt(connection.encrypted_password),
       options: {
-        encrypt: false,
-        trustServerCertificate: true
+        encrypt: true,
+        trustServerCertificate: true,
+        requestTimeout: (connection.timeout_seconds || 30) * 1000,
+      },
+      pool: {
+        max: connection.max_connections || 10,
+        min: 0,
+        idleTimeoutMillis: 30000
       }
     };
 
