@@ -1,8 +1,10 @@
 import { Response, NextFunction } from 'express';
+import { Op } from 'sequelize';
 import { Schedule } from '../models/Schedule';
 import { Query } from '../models/Query';
 import { Connection } from '../models/Connection';
 import { ExecutionHistory } from '../models/ExecutionHistory';
+import { ScheduleDependency } from '../models/ScheduleDependency';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { calculateNextRun } from '../utils/cronUtils';
@@ -121,6 +123,24 @@ export const deleteSchedule = async (req: AuthRequest, res: Response, next: Next
       throw new AppError('Schedule not found', 404);
     }
 
+    // Delete associated execution history first to avoid foreign key constraint
+    await ExecutionHistory.destroy({
+      where: {
+        schedule_id: schedule.id
+      }
+    });
+
+    // Delete associated schedule dependencies
+    await ScheduleDependency.destroy({
+      where: {
+        [Op.or]: [
+          { schedule_id: schedule.id },
+          { depends_on_schedule_id: schedule.id }
+        ]
+      }
+    });
+
+    // Now safe to delete the schedule
     await schedule.destroy();
 
     res.json({
