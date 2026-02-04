@@ -149,7 +149,29 @@ export default function Dashboard() {
     <div className="space-y-6">
       <WelcomeModal />
       {loading ? (
-        <div className="space-y-6 animate-pulse\">\n          {/* Header skeleton */}\n          <div className=\"flex justify-between items-center\">\n            <div className=\"h-8 bg-gray-200 dark:bg-gray-700 rounded w-64\"></div>\n            <div className=\"h-10 bg-gray-200 dark:bg-gray-700 rounded w-32\"></div>\n          </div>\n          \n          {/* Stats skeleton */}\n          <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6\">\n            {[...Array(4)].map((_, i) => (\n              <div key={i} className=\"bg-white dark:bg-gray-800 rounded-lg shadow p-6\">\n                <div className=\"h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-4\"></div>\n                <div className=\"h-8 bg-gray-200 dark:bg-gray-700 rounded w-16\"></div>\n              </div>\n            ))}\n          </div>\n          \n          {/* Chart skeleton */}\n          <div className=\"bg-white dark:bg-gray-800 rounded-lg shadow p-6\">\n            <div className=\"h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6\"></div>\n            <div className=\"h-64 bg-gray-200 dark:bg-gray-700 rounded\"></div>\n          </div>\n        </div>
+        <div className="space-y-6 animate-pulse">
+          {/* Header skeleton */}
+          <div className="flex justify-between items-center">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+          </div>
+          
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-4"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Chart skeleton */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6"></div>
+            <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
       ) : (
         <>
           {/* Header */}
