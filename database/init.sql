@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(50) NOT NULL DEFAULT 'read_only',
   timezone VARCHAR(50) NOT NULL DEFAULT 'UTC',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  failed_login_attempts INTEGER DEFAULT 0,
+  locked_until TIMESTAMP,
   last_login_at TIMESTAMP,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -158,9 +160,18 @@ CREATE TABLE IF NOT EXISTS notification_channels (
 );
 
 -- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_locked_until ON users(locked_until) WHERE locked_until IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_connections_created_by ON connections(created_by);
+CREATE INDEX IF NOT EXISTS idx_connections_type ON connections(type);
+CREATE INDEX IF NOT EXISTS idx_connections_environment ON connections(environment);
+
 CREATE INDEX IF NOT EXISTS idx_queries_created_by ON queries(created_by);
 CREATE INDEX IF NOT EXISTS idx_queries_category ON queries(category);
 CREATE INDEX IF NOT EXISTS idx_queries_database_type ON queries(database_type);
+CREATE INDEX IF NOT EXISTS idx_queries_is_public ON queries(is_public);
 
 CREATE INDEX IF NOT EXISTS idx_query_versions_query_id ON query_versions(query_id);
 CREATE INDEX IF NOT EXISTS idx_query_versions_created_at ON query_versions(created_at DESC);
@@ -168,11 +179,13 @@ CREATE INDEX IF NOT EXISTS idx_query_versions_created_at ON query_versions(creat
 CREATE INDEX IF NOT EXISTS idx_schedules_query_id ON schedules(query_id);
 CREATE INDEX IF NOT EXISTS idx_schedules_connection_id ON schedules(connection_id);
 CREATE INDEX IF NOT EXISTS idx_schedules_next_run ON schedules(next_run_time) WHERE is_enabled = TRUE;
+CREATE INDEX IF NOT EXISTS idx_schedules_created_by ON schedules(created_by);
 
 CREATE INDEX IF NOT EXISTS idx_execution_history_query_id ON execution_history(query_id);
 CREATE INDEX IF NOT EXISTS idx_execution_history_schedule_id ON execution_history(schedule_id);
-CREATE INDEX IF NOT EXISTS idx_execution_history_executed_at ON execution_history(executed_at);
+CREATE INDEX IF NOT EXISTS idx_execution_history_executed_at ON execution_history(executed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_execution_history_status ON execution_history(status);
+CREATE INDEX IF NOT EXISTS idx_execution_history_executed_by ON execution_history(executed_by);
 
 CREATE INDEX IF NOT EXISTS idx_query_tags_query_id ON query_tags(query_id);
 CREATE INDEX IF NOT EXISTS idx_query_tags_tag_name ON query_tags(tag_name);

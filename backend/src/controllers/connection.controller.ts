@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 import { encrypt } from '../utils/encryption';
 import { QueryExecutor } from '../services/queryExecutor';
 import { Op } from 'sequelize';
+import { logger } from '../utils/logger';
 
 export const getConnections = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -41,7 +42,7 @@ export const getConnections = async (req: AuthRequest, res: Response, next: Next
       }
     } catch (teamError) {
       // If team queries fail, continue with empty shared list
-      console.warn('Team connection lookup failed, showing only owned connections:', teamError);
+      logger.warn('Team connection lookup failed, showing only owned connections:', teamError);
     }
 
     // Get connections: owned by user OR shared with their teams

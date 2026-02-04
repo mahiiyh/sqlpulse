@@ -10,6 +10,7 @@ import { Op } from 'sequelize';
 import { QueryExecutor } from '../services/queryExecutor';
 import { ExportUtils } from '../utils/exportUtils';
 import { QueryParameterProcessor } from '../utils/queryParameters';
+import { logger } from '../utils/logger';
 
 export const getQueries = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -49,7 +50,7 @@ export const getQueries = async (req: AuthRequest, res: Response, next: NextFunc
         }
       } catch (teamError) {
         // If team queries fail, continue with empty shared list
-        console.warn('Team query lookup failed, showing only owned and public queries:', teamError);
+        logger.warn('Team query lookup failed, showing only owned and public queries:', teamError);
       }
 
       where[Op.or] = [

@@ -80,6 +80,15 @@ User.init(
       allowNull: false,
       defaultValue: true
     },
+    failed_login_attempts: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
+    },
+    locked_until: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     last_login_at: {
       type: DataTypes.DATE,
       allowNull: true
