@@ -106,7 +106,6 @@ Trigger notifications on:
   - Developer: Query creation and scheduling
   - Analyst: Query execution only
   - Read-Only: View-only access (default for new users)
-  - See [USER_ACCESS.md](USER_ACCESS.md) for detailed role permissions
 - **AES-256 encrypted credential storage** for all database connections
 - **New users default to Read-Only** for security (contact admin for upgrade)
 - **Complete audit trail** for all operations and data access
