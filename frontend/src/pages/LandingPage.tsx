@@ -120,15 +120,22 @@ export default function LandingPage() {
       <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center">
-              <Logo size="md" animated={true} showText={true} />
-            </Link>
-            <div className="hidden md:flex items-center space-x-8">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Link to="/" className="flex items-center">
+                <Logo size="md" animated={true} showText={true} />
+              </Link>
+            </div>
+            
+            {/* Center Navigation Links */}
+            <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
               <a href="#features" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Features</a>
               <a href="#benefits" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Benefits</a>
               <a href="#guides" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Guides</a>
               <a href="#use-cases" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Use Cases</a>
             </div>
+            
+            {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
               <button
                 onClick={toggleDarkMode}
