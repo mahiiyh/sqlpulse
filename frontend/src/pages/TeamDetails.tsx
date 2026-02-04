@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Team, TeamMember, User, teamService } from '../lib/teamService';
+import { Team, User, teamService } from '../lib/teamService';
 import apiClient from '../lib/api';
 import Loader from '../components/Loader';
 
