@@ -20,10 +20,17 @@ router.get('/stats', authenticate, authorize('admin', 'developer'), async (_req:
 });
 
 // Get active jobs
-router.get('/active', authenticate, authorize('admin', 'developer'), async (_req: AuthRequest, res: Response, next: NextFunction) => {
+router.get('/active', authenticate, authorize('admin', 'developer'), async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const jobs = await queueService.getActiveJobs();
-    const jobsData = jobs.map(job => ({
+    
+    // Filter jobs by user unless admin with showAll=true
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    const filteredJobs = showAll 
+      ? jobs 
+      : jobs.filter(job => job.data?.triggeredBy === req.user.id || job.data?.userId === req.user.id);
+    
+    const jobsData = filteredJobs.map(job => ({
       id: job.id,
       data: job.data,
       progress: job.progress(),
@@ -47,7 +54,14 @@ router.get('/failed', authenticate, authorize('admin', 'developer'), async (req:
     const end = parseInt(req.query.end as string, 10) || 10;
     
     const jobs = await queueService.getFailedJobs(start, end);
-    const jobsData = jobs.map(job => ({
+    
+    // Filter jobs by user unless admin with showAll=true
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    const filteredJobs = showAll 
+      ? jobs 
+      : jobs.filter(job => job.data?.triggeredBy === req.user.id || job.data?.userId === req.user.id);
+    
+    const jobsData = filteredJobs.map(job => ({
       id: job.id,
       data: job.data,
       failedReason: job.failedReason,
