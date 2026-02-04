@@ -14,6 +14,11 @@ import teamRoutes from './team.routes';
 
 const router = Router();
 
+// Public health check endpoint (no authentication required)
+router.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 router.use('/auth', authRoutes);
 router.use('/connections', connectionRoutes);
 router.use('/queries', queryRoutes);
