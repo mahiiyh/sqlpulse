@@ -173,7 +173,7 @@ const Settings: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h2 className="text-lg font-semibold mb-4 dark:text-white">SMTP Configuration</h2>
             <form onSubmit={handleSaveSMTP} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1 dark:text-gray-300">SMTP Host</label>
                   <input
@@ -259,7 +259,7 @@ const Settings: React.FC = () => {
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h2 className="text-lg font-semibold mb-4 dark:text-white">Test Email</h2>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <input
                 type="email"
                 value={testEmail}
@@ -270,7 +270,7 @@ const Settings: React.FC = () => {
               <button
                 onClick={handleTestSMTP}
                 disabled={loading}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
               >
                 {loading ? 'Sending...' : 'Send Test Email'}
               </button>
@@ -343,7 +343,7 @@ const Settings: React.FC = () => {
               <button
                 onClick={handleTestSlack}
                 disabled={loading}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
               >
                 {loading ? 'Sending...' : 'Send Test Notification'}
               </button>

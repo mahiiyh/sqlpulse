@@ -12,11 +12,20 @@ import {
   Play,
   BookOpen,
   Users,
-  ChevronRight
+  ChevronRight,
+  Moon,
+  Sun,
+  Menu,
+  X
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import { useTheme } from '../contexts/ThemeContext';
+import { useState } from 'react';
 
 export default function LandingPage() {
+  const { darkMode, toggleDarkMode } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const features = [
     {
       icon: <Server className="w-8 h-8" />,
@@ -120,15 +129,82 @@ export default function LandingPage() {
               <a href="#guides" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Guides</a>
               <a href="#use-cases" className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">Use Cases</a>
             </div>
-            <Link 
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? (
+                  <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                ) : (
+                  <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                )}
+              </button>
+              <Link 
               to="/login" 
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-2 rounded-lg font-medium transition flex items-center space-x-2 shadow-md hover:shadow-lg"
+              className="hidden sm:flex bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-2 rounded-lg font-medium transition items-center space-x-2 shadow-md hover:shadow-lg"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                ) : (
+                  <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="px-4 py-3 space-y-3">
+              <a 
+                href="#features" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition py-2"
+              >
+                Features
+              </a>
+              <a 
+                href="#benefits" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition py-2"
+              >
+                Benefits
+              </a>
+              <a 
+                href="#guides" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition py-2"
+              >
+                Guides
+              </a>
+              <a 
+                href="#use-cases" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition py-2"
+              >
+                Use Cases
+              </a>
+              <Link 
+                to="/login" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-center bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-medium transition shadow-md hover:shadow-lg mt-4"
+              >
+                Get Started
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}

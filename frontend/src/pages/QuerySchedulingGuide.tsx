@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Clock, Calendar, Zap, Bell, CheckCircle2, ArrowRight, Code2, Play, Repeat } from 'lucide-react';
+import { Clock, Calendar, Zap, Bell, CheckCircle2, ArrowRight, Code2, Play, Repeat, ArrowLeft } from 'lucide-react';
 
 export default function QuerySchedulingGuide() {
   return (
@@ -7,6 +7,13 @@ export default function QuerySchedulingGuide() {
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link 
+            to="/" 
+            className="inline-flex items-center space-x-2 text-white/80 hover:text-white transition mb-4 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition" />
+            <span>Back to Home</span>
+          </Link>
           <div className="flex items-center space-x-3 mb-4">
             <Clock className="w-8 h-8" />
             <h1 className="text-4xl md:text-5xl font-bold">Query Scheduling Guide</h1>

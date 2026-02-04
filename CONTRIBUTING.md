@@ -2,8 +2,11 @@
 
 Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to the project.
 
+> ⚠️ **Security Notice**: If you're contributing security-related changes or have discovered a vulnerability, please review the [Security](#security-contributions) section below and [SECURITY.md](SECURITY.md) before proceeding.
+
 ## Table of Contents
 - [Code of Conduct](#code-of-conduct)
+- [Security Contributions](#security-contributions)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Coding Standards](#coding-standards)
@@ -17,6 +20,84 @@ Thank you for your interest in contributing! This document provides guidelines a
 - Provide constructive feedback
 - Focus on what is best for the community
 - Show empathy towards other contributors
+
+## Security Contributions
+
+### 🔒 Reporting Security Vulnerabilities
+
+**⚠️ CRITICAL: Do NOT create public GitHub issues for security vulnerabilities.**
+
+If you discover a security vulnerability:
+
+1. **DO NOT** create a public issue or pull request
+2. Follow the responsible disclosure process in [SECURITY.md](SECURITY.md)
+3. Report privately via GitHub Security Advisories
+4. Wait for maintainer response before public disclosure
+
+### Security-Related Contributions
+
+When contributing security improvements:
+
+1. **Review First**: Read [SECURITY.md](SECURITY.md) thoroughly
+2. **Test Carefully**: Security changes require extensive testing
+3. **Document Impact**: Clearly explain security implications
+4. **Breaking Changes**: Security fixes may require breaking changes - document them
+5. **No Secrets**: Never include actual secrets, keys, or credentials in code or commits
+
+### Security Checklist for Contributors
+
+Before submitting security-related PRs:
+
+- [ ] No hardcoded secrets or credentials
+- [ ] No sensitive information in commit history
+- [ ] Input validation implemented
+- [ ] SQL injection prevention verified
+- [ ] XSS prevention measures in place
+- [ ] Authentication/authorization properly tested
+- [ ] Error messages don't leak sensitive information
+- [ ] Logging doesn't include sensitive data
+- [ ] Dependencies checked for known vulnerabilities (`npm audit`)
+- [ ] Security implications documented in PR description
+
+### Examples of Security Contributions
+
+**Welcome:**
+- Implementing additional security features (MFA, token revocation)
+- Improving input validation and sanitization
+- Enhancing audit logging
+- Fixing authentication/authorization issues
+- Improving encryption implementations
+- Adding security tests
+- Documenting security best practices
+
+**Requires Extra Caution:**
+- Changes to authentication logic
+- Modifications to credential encryption
+- Database query execution logic
+- Permission checking code
+- Token generation/validation
+
+### Security Development Environment
+
+For testing security features:
+
+```bash
+# Use separate test database (never production!)
+export DATABASE_URL=postgresql://testuser:testpass@localhost:5432/test_db
+
+# Use test secrets
+export JWT_SECRET=test-secret-not-for-production
+export ENCRYPTION_KEY=test1234567890test1234567890te
+
+# Enable debug logging
+export LOG_LEVEL=debug
+```
+
+**Never:**
+- Test with production databases
+- Use production credentials
+- Commit test credentials that look real
+- Store test data with real personal information
 
 ## Getting Started
 
@@ -45,6 +126,17 @@ Thank you for your interest in contributing! This document provides guidelines a
    cp backend/.env.example backend/.env
    cp scheduler/.env.example scheduler/.env
    # Edit .env files with your configuration
+   ```
+   
+   > ⚠️ **Security**: Use strong, unique secrets even in development. Never commit `.env` files.
+   
+   Generate secure secrets:
+   ```bash
+   # JWT Secret
+   openssl rand -base64 48
+   
+   # Encryption Key (exactly 32 characters)
+   openssl rand -base64 32 | cut -c1-32
    ```
 
 4. **Start services**

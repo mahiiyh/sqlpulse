@@ -1,18 +1,29 @@
 # Security Policy
 
+> ⚠️ **CRITICAL**: SQLPulse has the capability to execute arbitrary SQL queries against connected databases. Improper configuration or access control can lead to data loss, unauthorized access, or other security incidents. Please read this document carefully and implement all recommended security measures.
+
 ## 🛡️ Security
 
 We take the security of SQLPulse seriously. If you believe you have found a security vulnerability, please report it to us as described below.
 
 ## 📢 Reporting Security Vulnerabilities
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+**⚠️ IMPORTANT: Please do NOT report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them via email to: **security@sqlpulse.com** (or your configured email)
+To report a security vulnerability:
 
-You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
+1. **Preferred**: Create a private security advisory in the GitHub repository
+   - Go to the "Security" tab in the repository
+   - Click "Report a vulnerability"
+   - Fill out the security advisory form with as much detail as possible
 
-Please include the following information in your report:
+2. **Alternative**: Contact the maintainer privately through GitHub
+
+You should receive a response within 48 hours. If you don't receive a response, please follow up to ensure your report was received.
+
+### Information to Include
+
+Please include the following in your report:
 
 - Type of vulnerability
 - Full paths of source file(s) related to the vulnerability
@@ -33,6 +44,24 @@ We release patches for security vulnerabilities in the following versions:
 | < 1.0   | :x:                |
 
 ## 🚨 Security Best Practices
+
+### ⚠️ Critical Security Measures
+
+**NEVER:**
+- Commit `.env` files or any files containing secrets to version control
+- Use default credentials in production
+- Share encryption keys between environments
+- Grant unnecessary database permissions
+- Run the application with database admin/root accounts
+- Expose the application directly to the internet without proper security measures
+
+**ALWAYS:**
+- Use HTTPS/SSL in production
+- Implement proper network segmentation
+- Enable audit logging
+- Regularly review access logs
+- Keep all dependencies up to date
+- Follow the principle of least privilege
 
 ### For Administrators
 
@@ -125,7 +154,240 @@ SQLPulse implements several security measures:
    - Request validation
    - Error handling without information leakage
 
-## 🎯 Known Security Considerations
+## ⚠️ Critical Security Warnings
+
+### 1. Arbitrary SQL Execution Risk
+
+**HIGH RISK**: Users with query execution permissions can run ANY SQL command on connected databases, including:
+- `DROP TABLE` / `DROP DATABASE` - Data destruction
+- `DELETE` / `UPDATE` without WHERE clauses - Mass data corruption
+- `INSERT` - Unauthorized data creation
+- Schema modifications - Structural changes
+- User/permission manipulation - Privilege escalation
+
+**Mitigation:**
+- Use read-only database users for analyst and developer roles
+- Implement database-level permissions strictly
+- Require approval workflow for destructive operations
+- Enable audit logging for all query executions
+- Regularly review executed queries
+- Consider implementing query whitelisting for production databases
+
+### 2. Credential Storage Security
+
+**HIGH RISK**: Database credentials are stored encrypted but:
+- Anyone with access to the application database AND the encryption key can decrypt credentials
+- The encryption key must be kept absolutely secure
+- Loss of the encryption key means loss of all stored credentials
+
+**Mitigation:**
+- Store the `ENCRYPTION_KEY` in a secure vault (e.g., HashiCorp Vault, AWS Secrets Manager)
+- Never commit the encryption key to version control
+- Use different encryption keys for each environment
+- Implement key rotation procedures
+- Backup encryption keys securely
+- Limit access to the application database
+
+### 3. Scheduled Query Automation Risk
+
+**MEDIUM RISK**: Scheduled queries run automatically without human oversight:
+- Malicious scheduled queries can cause damage repeatedly
+- Failed queries may go unnoticed
+- Time-sensitive data operations may execute at wrong times
+
+**Mitigation:**
+- Implement mandatory approval for all scheduled queries
+- Require peer review before activation
+- Set up alerting for failed executions
+- Implement schedule change audit trail
+- Test schedules thoroughly in non-production environments
+- Use timezone awareness correctly
+
+### 4. Data Exfiltration Risk
+
+**MEDIUM RISK**: Query results can be exported, potentially exposing sensitive data:
+- Large datasets can be downloaded as CSV/Excel/JSON
+- No built-in data loss prevention (DLP)
+- Export actions are logged but not prevented
+
+**Mitigation:**
+- Implement export size limits
+- Monitor export activity
+- Restrict export permissions by role
+- Implement data masking for sensitive fields
+- Enable alerts for large exports
+- Review export audit logs regularly
+
+### 5. API Security
+
+**MEDIUM RISK**: API endpoints are secured with JWT but:
+- Stolen tokens can be used until expiry
+- No built-in token revocation mechanism
+- Rate limiting must be properly configured
+
+**Mitigation:**
+- Use short token expiry times (default: 7 days, consider reducing)
+- Implement token refresh mechanism
+- Enable rate limiting on all endpoints
+- Monitor for unusual API activity
+- Implement IP whitelisting where possible
+- Use MFA for admin accounts (requires implementation)
+
+## 🚪 Known Limitations
+
+1. **No Built-in MFA**: Multi-factor authentication is not currently implemented
+2. **No Query Timeout Protection**: Long-running queries can impact system performance
+3. **Limited DLP**: No built-in data loss prevention mechanisms
+4. **No Query Whitelisting**: Cannot restrict to approved queries only
+5. **No Database Activity Monitoring**: Relies on database-level auditing
+
+## 🔍 Recommended Additional Security Measures
+
+1. **Network Security**
+   - Deploy behind a VPN
+   - Use firewall rules to restrict access
+   - Implement IP whitelisting
+   - Use private networking for database connections
+
+2. **Monitoring & Alerting**
+   - Set up SIEM integration
+   - Enable real-time alerting for:
+     - Failed login attempts (>5 in 10 minutes)
+     - Destructive query execution (DROP, DELETE, UPDATE)
+     - Large data exports (>10,000 rows)
+     - Scheduled query failures
+     - Permission changes
+
+3. **Access Control**
+   - Implement SSO/SAML if possible
+   - Use strong password policies
+   - Regularly audit user permissions
+   - Disable inactive accounts
+   - Implement session timeout
+
+4. **Database Protection**
+   - Use separate database users per application role
+   - Never use database admin accounts
+   - Enable database audit logging
+   - Implement database-level query timeout
+   - Use read replicas for analyst queries
+
+5. **Backup & Recovery**
+   - Regular automated backups
+   - Test restore procedures
+   - Document disaster recovery plan
+   - Keep backups encrypted
+   - Store backups in separate location
+
+## 🔎 Security Audit Checklist
+
+**Pre-Production Deployment:**
+
+- [ ] Changed default admin password
+- [ ] Generated strong JWT_SECRET (32+ characters, random)
+- [ ] Generated secure ENCRYPTION_KEY (exactly 32 characters, random)
+- [ ] Configured HTTPS/SSL with valid certificate
+- [ ] Restricted database access (no admin accounts)
+- [ ] Enabled database SSL/TLS connections
+- [ ] Configured firewall rules
+- [ ] Set up rate limiting (enabled and tested)
+- [ ] Configured CORS properly (no '*' wildcards)
+- [ ] Enabled audit logging
+- [ ] Set up monitoring and alerting
+- [ ] Tested backup and restore procedures
+- [ ] Reviewed all user permissions
+- [ ] Implemented network segmentation
+- [ ] Documented security procedures
+- [ ] Trained team on security practices
+- [ ] Set up incident response plan
+- [ ] Configured log retention policies
+- [ ] Enabled Redis password authentication
+- [ ] Reviewed all environment variables
+
+**Regular Security Maintenance (Monthly):**
+
+- [ ] Review access logs for anomalies
+- [ ] Audit user permissions
+- [ ] Update dependencies (`npm audit`)
+- [ ] Review and rotate credentials
+- [ ] Test disaster recovery
+- [ ] Review executed queries
+- [ ] Check for failed login attempts
+- [ ] Verify backup integrity
+- [ ] Update security documentation
+- [ ] Review scheduled queries
+
+## 🔒 Compliance Considerations
+
+If handling regulated data, ensure compliance with:
+
+- **GDPR**: Right to erasure, data portability, consent management
+- **HIPAA**: PHI protection, access controls, audit logging
+- **SOX**: Financial data controls, audit trails
+- **PCI DSS**: If storing/processing payment card data (NOT RECOMMENDED)
+
+This application does not provide built-in compliance features. You are responsible for implementing additional controls as required by applicable regulations.
+
+## 🔐 Secure Configuration Examples
+
+### Production Environment Variables
+
+```bash
+# DO NOT use these example values - generate your own!
+
+# Strong JWT secret (generate with: openssl rand -base64 48)
+JWT_SECRET=your-very-long-random-secret-at-least-32-characters
+
+# Encryption key - EXACTLY 32 characters (generate with: openssl rand -base64 32 | cut -c1-32)
+ENCRYPTION_KEY=abcdefgh12345678abcdefgh12345678
+
+# Short token expiry for better security
+JWT_EXPIRES_IN=24h
+
+# Production mode
+NODE_ENV=production
+
+# Database with SSL
+DATABASE_URL=postgresql://readonly_user:strong_pass@host:5432/db?sslmode=require
+
+# Redis with password
+REDIS_URL=redis://:redis_password@host:6379
+
+# Query safety limits
+QUERY_TIMEOUT_SECONDS=300
+MAX_CONCURRENT_EXECUTIONS=5
+MAX_EXPORT_ROWS=10000
+```
+
+## 🔍 Incident Response
+
+If you suspect a security incident:
+
+1. **Immediate Actions:**
+   - Disable affected user accounts
+   - Change compromised credentials
+   - Review audit logs
+   - Notify stakeholders
+
+2. **Investigation:**
+   - Identify scope of incident
+   - Determine affected data/systems
+   - Collect evidence
+   - Document timeline
+
+3. **Remediation:**
+   - Fix identified vulnerabilities
+   - Restore from backups if needed
+   - Update security controls
+   - Implement additional monitoring
+
+4. **Post-Incident:**
+   - Conduct retrospective
+   - Update security procedures
+   - Train team on lessons learned
+   - Report to appropriate authorities if required
+
+## 🔍 Known Security Considerations
 
 1. **Query Execution Risk**
    - Users with query execution permissions can run arbitrary SQL
@@ -182,8 +444,8 @@ Subscribe to repository notifications to stay informed.
 
 ## 📞 Contact
 
-For security-related questions or concerns, contact:
-- Email: security@sqlpulse.com
-- GitHub Security Advisories: https://github.com/yourusername/sqlpulse/security/advisories
+For security-related questions or concerns:
+- Use GitHub Security Advisories (preferred)
+- Contact the repository maintainer through GitHub
 
 Thank you for helping keep SQLPulse and its users safe!

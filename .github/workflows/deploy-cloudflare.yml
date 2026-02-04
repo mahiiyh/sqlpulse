@@ -53,4 +53,4 @@ jobs:
       - name: Deployment Summary
         run: |
           echo "✅ Frontend deployed to Cloudflare Pages"
-          echo "🚀 Live at: https://sqlpulse.mahiiyh.me"
+          echo "🚀 Check your Cloudflare Pages dashboard for the live URL"

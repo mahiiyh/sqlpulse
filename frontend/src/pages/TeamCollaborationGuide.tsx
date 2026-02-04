@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, UserPlus, Shield, Share2, CheckCircle2, ArrowRight, Mail, Lock, Star } from 'lucide-react';
+import { Users, UserPlus, Shield, Share2, CheckCircle2, ArrowRight, Mail, Lock, Star, ArrowLeft } from 'lucide-react';
 
 export default function TeamCollaborationGuide() {
   return (
@@ -7,6 +7,13 @@ export default function TeamCollaborationGuide() {
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link 
+            to="/" 
+            className="inline-flex items-center space-x-2 text-white/80 hover:text-white transition mb-4 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition" />
+            <span>Back to Home</span>
+          </Link>
           <div className="flex items-center space-x-3 mb-4">
             <Users className="w-8 h-8" />
             <h1 className="text-4xl md:text-5xl font-bold">Team Collaboration Guide</h1>

@@ -376,20 +376,20 @@ export default function ExecutionHistory() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Executed By</label>
-                    <div className="mt-1 text-sm text-gray-900">{selectedExecution.executor?.username || 'Unknown'}</div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Executed By</label>
+                    <div className="mt-1 text-sm text-gray-900 dark:text-gray-300">{selectedExecution.executor?.username || 'Unknown'}</div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Execution Type</label>
-                    <div className="mt-1 text-sm text-gray-900 capitalize">{selectedExecution.execution_type}</div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Execution Type</label>
+                    <div className="mt-1 text-sm text-gray-900 dark:text-gray-300 capitalize">{selectedExecution.execution_type}</div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                     <div className="mt-1">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(selectedExecution.status)}`}>
                         {selectedExecution.status}
@@ -397,27 +397,27 @@ export default function ExecutionHistory() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Duration</label>
-                    <div className="mt-1 text-sm text-gray-900">{formatDuration(selectedExecution.execution_time_ms)}</div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Duration</label>
+                    <div className="mt-1 text-sm text-gray-900 dark:text-gray-300">{formatDuration(selectedExecution.execution_time_ms)}</div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Executed At</label>
-                    <div className="mt-1 text-sm text-gray-900">{formatDate(selectedExecution.executed_at)}</div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Executed At</label>
+                    <div className="mt-1 text-sm text-gray-900 dark:text-gray-300">{formatDate(selectedExecution.executed_at)}</div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Completed At</label>
-                    <div className="mt-1 text-sm text-gray-900">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Completed At</label>
+                    <div className="mt-1 text-sm text-gray-900 dark:text-gray-300">
                       {selectedExecution.completed_at ? formatDate(selectedExecution.completed_at) : 'N/A'}
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Rows Affected</label>
-                  <div className="mt-1 text-sm text-gray-900">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rows Affected</label>
+                  <div className="mt-1 text-sm text-gray-900 dark:text-gray-300">
                     {selectedExecution.rows_affected !== null && selectedExecution.rows_affected !== undefined
                       ? selectedExecution.rows_affected
                       : 'N/A'}

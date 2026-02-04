@@ -16,23 +16,9 @@
 
 **Real-time SQL workflow monitoring with intelligent query management and automation**
 
-[Live Demo](https://sqlpulse.mahiiyh.me) • [Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
+[Features](#-features) • [User Guide](#-user-guide) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 </div>
-
----
-
-## 🌐 Production Deployment
-
-**Live Application:** https://sqlpulse.mahiiyh.me
-
-**Infrastructure:**
-- 🎨 **Frontend**: Cloudflare Pages (Global CDN)
-- ⚡ **Backend API**: Railway (Auto-scaling)
-- ⏰ **Scheduler**: Railway (Background jobs)
-- 🗄️ **Database**: Neon PostgreSQL (Serverless)
-- 🔄 **Cache**: Railway Redis
-- 🚀 **CI/CD**: GitHub Actions (Auto-deploy on push)
 
 ---
 
@@ -114,17 +100,22 @@ Trigger notifications on:
 - Daily summary reports
 
 ### 🔐 Security
-- JWT-based authentication
-- Role-based access control (RBAC)
-  - Admin
-  - Developer
-  - Analyst
-  - Scheduler
-  - Read-Only
-- Encrypted credential storage
-- Audit trail for all operations
-- Production database protection
-- Query approval workflow
+- **JWT-based authentication** with secure token management
+- **Role-based access control (RBAC)** with principle of least privilege
+  - Admin: Full system access
+  - Developer: Query creation and scheduling
+  - Analyst: Query execution only
+  - Scheduler: Schedule management
+  - Read-Only: View-only access
+- **AES-256 encrypted credential storage** for all database connections
+- **Complete audit trail** for all operations and data access
+- **Production database protection** with read-only mode enforcement
+- **Query approval workflow** for destructive operations (UPDATE/DELETE/DROP)
+- **Rate limiting** on all API endpoints to prevent abuse
+- **SQL injection prevention** through parameterized queries
+- **Input validation and sanitization** on all user inputs
+
+> ⚠️ **Security Notice**: This application handles sensitive database credentials and can execute arbitrary SQL queries. Ensure proper access controls, use strong passwords, and follow security best practices outlined in [SECURITY.md](SECURITY.md).
 
 ## 🏗️ Architecture
 
@@ -189,203 +180,6 @@ Trigger notifications on:
 - **Docker** & **Docker Compose**
 - **Nginx** for reverse proxy
 
-## 📦 Quick Start
-
-### Option 1: Local Development (Docker)
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/sqlpulse.git
-cd sqlpulse
-
-# Start all services with Docker Compose
-docker-compose up -d
-
-# Access the application
-open http://localhost:3000
-```
-
-**Default credentials:**
-- Username: `admin`
-- Password: `admin123`
-- ⚠️ Change immediately after first login!
-
-### Option 2: Manual Setup
-
-**Prerequisites:** Node.js 18+, PostgreSQL 14+, Redis 7+
-
-```bash
-# Install dependencies
-npm run install-all
-
-# Set up environment variables
-cp backend/.env.example backend/.env
-cp scheduler/.env.example scheduler/.env
-cp frontend/.env.example frontend/.env
-
-# Edit .env files with your database credentials
-
-# Start PostgreSQL and Redis (or use Docker)
-docker-compose up -d postgres redis
-
-# Run database migrations
-cd backend && npm run migrate
-
-# Start all services
-npm run dev
-```
-
-**Access:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
-- API Health: http://localhost:3001/api/health
-
----
-
-## 🚀 Deployment
-
-### Production Deployment (Current Setup)
-
-**Automated CI/CD Pipeline:**
-1. Push code to `main` branch
-2. GitHub Actions automatically:
-   - Runs tests and builds
-   - Deploys frontend to Cloudflare Pages
-   - Deploys backend to Railway
-   - Deploys scheduler to Railway
-
-**Manual Deployment:**
-
-See [CUSTOM-DOMAIN-SETUP.md](CUSTOM-DOMAIN-SETUP.md) for detailed deployment guide including:
-- Custom domain configuration
-- SSL setup
-- Environment variables
-- Database migrations
-- Monitoring setup
-
-### Prerequisites
-- Node.js 18+ and npm 9+
-- Docker and Docker Compose (recommended)
-- PostgreSQL 14+ (if not using Docker)
-- Redis 7+ (if not using Docker)
-
-### Option 1: Docker Compose (Recommended)
-
-1. **Clone the repository**
-```bash
-cd "SQL Query Management Dashboard"
-```
-
-2. **Create environment files**
-```bash
-# Backend
-cp backend/.env.example backend/.env
-
-# Edit backend/.env and update:
-# - JWT_SECRET (use a strong random string)
-# - ENCRYPTION_KEY (exactly 32 characters for AES-256)
-# - SMTP credentials (if using email notifications)
-```
-
-3. **Start all services**
-```bash
-docker-compose up -d
-```
-
-4. **Check service health**
-```bash
-docker-compose ps
-docker-compose logs -f
-```
-
-5. **Access the application**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
-- API Health: http://localhost:3001/health
-
-### Option 2: Manual Installation
-
-1. **Install dependencies for all services**
-```bash
-npm run install-all
-```
-
-2. **Set up PostgreSQL database**
-```bash
-# Create database
-createdb sqlquery_db
-
-# Run initialization script
-psql -U postgres -d sqlquery_db -f database/init.sql
-```
-
-3. **Start Redis**
-```bash
-redis-server
-```
-
-4. **Configure environment variables**
-```bash
-# Backend
-cp backend/.env.example backend/.env
-# Edit backend/.env
-
-# Update DATABASE_URL, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY
-```
-
-5. **Start all services**
-```bash
-# Terminal 1 - Backend
-cd backend
-npm run dev
-
-# Terminal 2 - Scheduler
-cd scheduler
-npm run dev
-
-# Terminal 3 - Frontend
-cd frontend
-npm run dev
-```
-
-## 🎯 Quick Start
-
-### Default Credentials
-After installation, log in with:
-- **Email**: admin@example.com
-- **Password**: admin123
-
-⚠️ **Change the default password immediately after first login!**
-
-### Creating Your First Query
-
-1. **Add a Database Connection**
-   - Navigate to "Connections"
-   - Click "Add Connection"
-   - Fill in connection details
-   - Test connection
-   - Save
-
-2. **Create a Query**
-   - Navigate to "Query Library"
-   - Click "New Query"
-   - Enter query name and description
-   - Write your SQL in the editor
-   - Select database type and connection
-   - Save
-
-3. **Execute the Query**
-   - Click "Execute" button
-   - Enter parameter values (if any)
-   - View results
-
-4. **Schedule the Query**
-   - Click "Schedule" button
-   - Choose schedule type
-   - Configure frequency
-   - Set notifications
-   - Enable schedule
-
 ## 📖 User Guide
 
 ### Dashboard
@@ -436,173 +230,6 @@ Secure database credentials:
 - **Status**: View active connections
 - **Permissions**: Control user access
 
-## 🔧 Configuration
-
-### Environment Variables
-
-#### Backend (.env)
-```env
-NODE_ENV=development
-PORT=3001
-DATABASE_URL=postgresql://user:pass@localhost:5432/sqlquery_db
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-secure-jwt-secret-here
-JWT_EXPIRES_IN=7d
-ENCRYPTION_KEY=your-32-character-encryption-key
-QUERY_TIMEOUT_SECONDS=300
-MAX_CONCURRENT_EXECUTIONS=10
-```
-
-#### Frontend (.env)
-```env
-VITE_API_URL=http://localhost:3001/api
-```
-
-### Notification Configuration
-
-#### Email (SMTP)
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-SMTP_FROM=noreply@yourcompany.com
-```
-
-#### Slack Webhook
-```env
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
-```
-
-## 🔐 Security Best Practices
-
-1. **Change Default Credentials**: Immediately after installation
-2. **Use Strong Secrets**: Generate random JWT_SECRET and ENCRYPTION_KEY
-3. **Enable HTTPS**: In production, always use HTTPS
-4. **Restrict Database Access**: Use read-only users for SELECT queries
-5. **Review Dangerous Queries**: Implement approval workflow for UPDATE/DELETE
-6. **Monitor Audit Logs**: Regularly review execution history
-7. **Limit Connection Access**: Use RBAC to control who can access what
-8. **Backup Regularly**: Automated backups of application database
-9. **Update Dependencies**: Keep packages up to date
-
-## 📊 Monitoring
-
-### Health Checks
-```bash
-# Backend health
-curl http://localhost:3001/health
-
-# Check all services
-docker-compose ps
-```
-
-### Logs
-```bash
-# View all logs
-docker-compose logs -f
-
-# Specific service
-docker-compose logs -f backend
-docker-compose logs -f scheduler
-
-# Backend logs (manual)
-tail -f backend/logs/combined.log
-tail -f backend/logs/error.log
-```
-
-### Queue Monitoring
-Access Bull Dashboard (optional):
-```bash
-npm install -g bull-board
-bull-board
-```
-
-## 🚀 Production Deployment
-
-### Pre-deployment Checklist
-- [ ] Update all environment variables
-- [ ] Change default admin password
-- [ ] Configure HTTPS/SSL
-- [ ] Set up database backups
-- [ ] Configure monitoring and alerts
-- [ ] Review security settings
-- [ ] Test all critical paths
-- [ ] Set up log aggregation
-- [ ] Configure resource limits
-- [ ] Plan for horizontal scaling
-
-### Docker Production Build
-```bash
-# Build production images
-docker-compose -f docker-compose.prod.yml build
-
-# Start production services
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-### Scaling Scheduler Workers
-To handle more scheduled queries, scale the scheduler service:
-```bash
-docker-compose up -d --scale scheduler=3
-```
-
-## 🧪 Development
-
-### Project Structure
-```
-sql-query-dashboard/
-├── backend/               # Express API server
-│   ├── src/
-│   │   ├── controllers/   # Route controllers
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   ├── services/      # Business logic
-│   │   ├── middleware/    # Express middleware
-│   │   ├── utils/         # Utility functions
-│   │   └── index.ts       # Entry point
-│   └── package.json
-├── frontend/              # React application
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── pages/         # Page components
-│   │   ├── stores/        # Zustand stores
-│   │   ├── lib/           # API client, utilities
-│   │   └── main.tsx       # Entry point
-│   └── package.json
-├── scheduler/             # Background worker
-│   ├── src/
-│   │   ├── services/      # Scheduling logic
-│   │   ├── utils/         # Utilities
-│   │   └── index.ts       # Entry point
-│   └── package.json
-├── database/              # Database scripts
-│   └── init.sql           # Schema initialization
-├── docker-compose.yml     # Development setup
-└── README.md             # This file
-```
-
-### Running Tests
-```bash
-# Backend tests
-cd backend
-npm test
-
-# Frontend tests
-cd frontend
-npm test
-```
-
-### Code Quality
-```bash
-# Lint
-npm run lint
-
-# Format
-npm run format
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -613,11 +240,13 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+For detailed guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+> **Note**: Please review [SECURITY.md](SECURITY.md) before contributing security-related changes.
+
 ## 📝 API Documentation
 
-Full API documentation is available at:
-- Development: http://localhost:3001/api-docs
-- Swagger/OpenAPI spec: `/api-docs/swagger.json`
+Full API documentation is available at `/api-docs` when running the backend server.
 
 ### Key Endpoints
 
@@ -652,83 +281,12 @@ POST   /api/schedules/:id/run-now
 GET    /api/schedules/upcoming
 ```
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Problem**: Cannot connect to database
-```bash
-# Check PostgreSQL is running
-docker-compose ps postgres
-
-# Check connection string in .env
-cat backend/.env | grep DATABASE_URL
-
-# Test connection
-docker-compose exec postgres psql -U sqlquery_user -d sqlquery_db
-```
-
-**Problem**: Scheduler not executing jobs
-```bash
-# Check Redis is running
-docker-compose ps redis
-
-# Check scheduler logs
-docker-compose logs -f scheduler
-
-# Verify schedules are enabled
-docker-compose exec postgres psql -U sqlquery_user -d sqlquery_db \
-  -c "SELECT id, schedule_name, is_enabled, next_run_time FROM schedules;"
-```
-
-**Problem**: Frontend not connecting to backend
-```bash
-# Check backend is running
-curl http://localhost:3001/health
-
-# Check VITE_API_URL in frontend/.env
-cat frontend/.env
-
-# Check browser console for errors
-```
-
-## � Documentation
+## 📚 Documentation
 
 - 🏗️ [Architecture & Project Structure](ARCHITECTURE.md) - System design and folder structure
-- 🌐 [Custom Domain Setup](CUSTOM-DOMAIN-SETUP.md) - Production deployment with custom domain
-- 🔒 [Security Policy](SECURITY.md) - Security best practices
-- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute
-- 📝 [Changelog](CHANGELOG.md) - Version history
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Problem**: Cannot connect to database
-```bash
-# Check PostgreSQL is running
-docker-compose ps postgres
-
-# Test connection
-docker-compose exec postgres psql -U sqlquery_user -d sqlquery_db
-```
-
-**Problem**: Scheduler not executing jobs
-```bash
-# Check Redis is running
-docker-compose ps redis
-
-# Check scheduler logs
-docker-compose logs -f scheduler
-```
-
-**Problem**: Frontend not connecting to backend
-```bash
-# Check backend health
-curl http://localhost:3001/api/health
-
-# Check VITE_API_BASE_URL in frontend/.env
-```
+- 🔒 [Security Policy](SECURITY.md) - Security best practices and reporting
+- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
+- 📝 [Changelog](CHANGELOG.md) - Version history and updates
 
 ---
 
@@ -738,11 +296,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 🐛 [Report bugs](https://github.com/yourusername/sqlpulse/issues/new?template=bug_report.md)
-- 💡 [Request features](https://github.com/yourusername/sqlpulse/issues/new?template=feature_request.md)
-- ❓ [Ask questions](https://github.com/yourusername/sqlpulse/issues/new?template=question.md)
-- 🔒 Security issues: See [SECURITY.md](SECURITY.md)
+For questions, feedback, or issues, please use GitHub Issues.
+
+> ⚠️ **IMPORTANT**: For security vulnerabilities, **DO NOT** create a public issue. Instead, follow the responsible disclosure process outlined in [SECURITY.md](SECURITY.md).
+
+---
+
+## ⚠️ Disclaimer
+
+This is a personal project for SQL query management and automation. Use at your own risk.
+
+- **Database Access**: This application can execute arbitrary SQL queries on connected databases. Ensure proper access controls and permissions.
+- **Production Use**: Thoroughly test in a non-production environment before deploying to production.
+- **Data Security**: You are responsible for securing database credentials, configuring authentication, and following security best practices.
+- **No Warranty**: This software is provided "as is" without warranty of any kind. See [LICENSE](LICENSE) for details.
 
 ---
 
 **Made with ❤️ for database administrators, analysts, and developers**
+ `/api-docs` when running the backend server.� Documentation
+
+- 🏗️ [Architecture & Project Structure](ARCHITECTURE.md) - System design and folder structure
+- 🔒 [Security Policy](SECURITY.md) - Security best practices and reporting
+- 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
+- 📝 [Changelog](CHANGELOG.md) - Version history and updates

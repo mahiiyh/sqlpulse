@@ -197,9 +197,9 @@ export default function QueryEditor() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Category *
             </label>
             <select
@@ -218,7 +218,7 @@ export default function QueryEditor() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Database Type *
             </label>
             <select
@@ -235,7 +235,7 @@ export default function QueryEditor() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Project Name
           </label>
           <input
@@ -247,7 +247,7 @@ export default function QueryEditor() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             SQL Content *
           </label>
           <div className="border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white overflow-hidden">
@@ -307,10 +307,10 @@ export default function QueryEditor() {
 
         {id && connections.length > 0 && (
           <div className="border-t pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Execute Query</h3>
-            <div className="flex gap-3 items-end">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Execute Query</h3>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Select Connection
                 </label>
                 <select
@@ -329,7 +329,7 @@ export default function QueryEditor() {
                 type="button"
                 onClick={handleExecute}
                 disabled={executing}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
               >
                 {executing ? 'Executing...' : '▶ Execute'}
               </button>
@@ -337,18 +337,18 @@ export default function QueryEditor() {
           </div>
         )}
 
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {loading ? 'Saving...' : id ? 'Update Query' : 'Create Query'}
           </button>
           <button
             type="button"
             onClick={() => navigate('/queries')}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            className="w-full sm:w-auto px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
             Cancel
           </button>
@@ -358,15 +358,15 @@ export default function QueryEditor() {
       {/* Execution Results */}
       {executionResult && (
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="border-b border-gray-200 p-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
+          <div className="border-b border-gray-200 dark:border-gray-700 p-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <h3 className="text-lg font-semibold text-green-600">✓ Execution Successful</h3>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   {executionResult.rows.length} rows • {executionResult.executionTime}ms • {executionResult.rowsAffected} affected
                 </span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleExport('csv')}
                   className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
@@ -416,11 +416,11 @@ export default function QueryEditor() {
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {paginatedRows.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50 dark:bg-gray-700/50">
+                      <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         {Object.values(row).map((value: any, cellIdx) => (
                           <td
                             key={cellIdx}
-                            className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap"
+                            className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300 whitespace-nowrap"
                           >
                             {value === null || value === undefined ? (
                               <span className="text-gray-400 italic">NULL</span>
@@ -439,7 +439,7 @@ export default function QueryEditor() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="border-t border-gray-200 p-4 flex items-center justify-between">
+                <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="text-sm text-gray-700 dark:text-gray-300">
                     Showing {startIndex + 1} to {Math.min(endIndex, executionResult.rows.length)} of {executionResult.rows.length} results
                   </div>
@@ -447,17 +447,17 @@ export default function QueryEditor() {
                     <button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 dark:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
-                    <span className="px-3 py-1 text-sm text-gray-700">
+                    <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
                       Page {currentPage} of {totalPages}
                     </span>
                     <button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 dark:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
@@ -466,7 +466,7 @@ export default function QueryEditor() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
               Query executed successfully but returned no rows.
             </div>
           )}

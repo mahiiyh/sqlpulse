@@ -20,16 +20,32 @@ build/
 logs/
 *.log
 
-# IDE
+# Test scripts (development only)
+test-*.sh
+fix-*.sh
+
+# Internal documentation (not for public repo)
+AUDIT-*.md
+BUGFIX-*.md
+COMPREHENSIVE-*.md
+CRITICAL-*.md
+MERGE-*.md
+POST-*.md
+PRODUCT-*.md
+QUICKSTART-*.md
+USER_*.md
+
+# OS
+.DS_Store
+Thumbs.db
+._*
+
+# IDE & Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
-.DS_Store
-Thumbs.db
 
 # Database
 *.sqlite

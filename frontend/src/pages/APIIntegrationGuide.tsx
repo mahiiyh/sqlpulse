@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Code2, Server, Key, CheckCircle2, ArrowRight, Terminal, Book, Zap } from 'lucide-react';
+import { Code2, Server, Key, CheckCircle2, ArrowRight, Terminal, Book, Zap, ArrowLeft } from 'lucide-react';
 
 export default function APIIntegrationGuide() {
   return (
@@ -7,6 +7,13 @@ export default function APIIntegrationGuide() {
       {/* Header */}
       <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-700 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link 
+            to="/" 
+            className="inline-flex items-center space-x-2 text-white/80 hover:text-white transition mb-4 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition" />
+            <span>Back to Home</span>
+          </Link>
           <div className="flex items-center space-x-3 mb-4">
             <Code2 className="w-8 h-8" />
             <h1 className="text-4xl md:text-5xl font-bold">API Integration Guide</h1>

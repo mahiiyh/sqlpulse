@@ -1,5 +1,7 @@
 # Project Structure
 
+> ⚠️ **Security Note**: This document describes the technical architecture of SQLPulse. For security considerations and best practices, please review [SECURITY.md](SECURITY.md) before deploying.
+
 SQLPulse is organized as a monorepo with separate frontend, backend, and scheduler services.
 
 ```
@@ -60,7 +62,6 @@ sqlpulse/
 ├── package.json                   # Root package.json (npm workspaces)
 ├── README.md                      # Main documentation
 ├── CONTRIBUTING.md                # Contribution guidelines
-├── CUSTOM-DOMAIN-SETUP.md        # Custom domain setup guide
 ├── SECURITY.md                    # Security policy
 ├── CHANGELOG.md                   # Version history
 └── LICENSE                        # MIT License
@@ -72,24 +73,24 @@ sqlpulse/
 ┌─────────────────────────────────────┐
 │   Frontend (React + Vite)           │
 │   Deployed on: Cloudflare Pages     │
-│   URL: sqlpulse.mahiiyh.me          │
+│   (or any static hosting)           │
 └──────────────┬──────────────────────┘
                │ HTTPS/REST API
 ┌──────────────▼──────────────────────┐
 │   Backend API (Express + TypeScript)│
-│   Deployed on: Railway               │
-│   URL: backend-production-*.railway │
+│   Deployed on: Railway / Heroku     │
+│   / any Node.js hosting             │
 └──────────┬──────────┬────────────────┘
            │          │
            ▼          ▼
     ┌──────────┐  ┌──────────┐
-    │  Neon DB │  │  Redis   │
-    │PostgreSQL│  │ Railway  │
+    │PostgreSQL│  │  Redis   │
+    │ (Cloud)  │  │ (Cloud)  │
     └──────────┘  └─────┬────┘
                         │
               ┌─────────▼─────────┐
               │ Scheduler Service │
-              │ Deployed: Railway │
+              │ (Background Jobs) │
               └───────────────────┘
 ```
 
@@ -160,15 +161,30 @@ railway up --service scheduler
 
 ## Environment Variables
 
+> ⚠️ **Security Warning**: Never commit `.env` files to version control. Always use strong, randomly generated secrets in production.
+
 ### Frontend
 - `VITE_API_BASE_URL`: Backend API endpoint
 
 ### Backend
-- `DATABASE_URL`: PostgreSQL connection string (Neon)
-- `REDIS_URL`: Redis connection string (Railway)
-- `JWT_SECRET`: Secret for JWT token signing
-- `ENCRYPTION_KEY`: AES-256 encryption key (32 chars)
+- `DATABASE_URL`: PostgreSQL connection string (use SSL in production: `?sslmode=require`)
+- `REDIS_URL`: Redis connection string (use password authentication)
+- `JWT_SECRET`: Secret for JWT token signing (min 32 characters, randomly generated)
+- `ENCRYPTION_KEY`: AES-256 encryption key (exactly 32 characters)
+- `JWT_EXPIRES_IN`: Token expiry duration (default: 7d, recommend shorter for production)
 - `PORT`: Server port (default: 3001)
+- `NODE_ENV`: Environment (development/production)
+- `QUERY_TIMEOUT_SECONDS`: Max query execution time (default: 300)
+- `MAX_CONCURRENT_EXECUTIONS`: Concurrent query limit (default: 10)
+
+**Generate Secure Secrets:**
+```bash
+# JWT Secret (32+ characters)
+openssl rand -base64 48
+
+# Encryption Key (exactly 32 characters)
+openssl rand -base64 32 | cut -c1-32
+```
 
 ### Scheduler
 - Same as backend (shares database and Redis)
@@ -196,7 +212,50 @@ railway up --service scheduler
 
 ## Security
 
-- **Frontend**: Environment variables at build time
-- **Backend**: JWT authentication, encrypted credentials
-- **Database**: SSL/TLS connections, Neon security features
-- **Secrets**: Managed via GitHub Secrets + Railway environment variables
+### Authentication & Authorization
+- **Frontend**: JWT tokens stored in httpOnly cookies (recommended) or localStorage
+- **Backend**: JWT verification middleware on all protected endpoints
+- **RBAC**: Role-based access control with permission matrix
+  - Admin: Full access to all features
+  - Developer: Query management, execution, scheduling
+  - Analyst: Query execution only (read operations)
+  - Scheduler: Schedule management only
+  - Read-Only: View-only access
+
+### Data Encryption
+- **At Rest**: Database credentials encrypted with AES-256-CBC
+- **In Transit**: HTTPS/TLS for all API communication
+- **Database**: SSL/TLS connections to target databases (configurable)
+- **Passwords**: Bcrypt hashing with 10 salt rounds
+
+### API Security
+- **Authentication**: JWT tokens with configurable expiry (default: 7 days)
+- **Rate Limiting**: Prevents brute force and DoS attacks
+  - Login endpoint: 5 attempts per 15 minutes
+  - API endpoints: 100 requests per 15 minutes per user
+- **CORS**: Configured to allow only trusted origins
+- **Input Validation**: All inputs validated and sanitized
+- **SQL Injection Prevention**: Parameterized queries via Sequelize ORM
+
+### Credential Management
+- **Environment Variables**: Sensitive data stored in `.env` (never committed)
+- **Encryption Key**: Required for encrypting/decrypting database credentials
+- **Secrets Rotation**: Manual process (key rotation requires re-encryption)
+
+### Audit & Logging
+- **Execution History**: All query executions logged with user, timestamp, parameters
+- **Authentication Logs**: Login attempts, failures, logouts
+- **Permission Changes**: Admin actions logged
+- **Error Logging**: Winston logger with file and console transports
+- **Log Retention**: Configurable (recommend 90 days minimum)
+
+### Security Limitations
+> ⚠️ **Important**: Please review these limitations:
+
+1. **No Built-in MFA**: Multi-factor authentication not implemented
+2. **Token Revocation**: No centralized token blacklist (tokens valid until expiry)
+3. **Query Content**: No built-in query whitelisting or DLP
+4. **Database Permissions**: Relies on database-level access controls
+5. **Network Security**: Application-level security only (no VPN/network segmentation)
+
+For comprehensive security guidance, see [SECURITY.md](SECURITY.md).
