@@ -91,12 +91,12 @@ export default function Layout() {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="lg:hidden pb-3 pt-2 space-y-1">
+          <div className="lg:hidden pb-3 pt-2 space-y-1 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
             {navigation.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+                className={`flex items-center px-3 py-3 rounded-md text-base font-medium transition-colors touch-manipulation ${
                   location.pathname === item.path
                     ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'

@@ -19,11 +19,11 @@ const Loader: React.FC<LoaderProps> = ({ size = 'md', text, fullScreen = false }
     : 'flex flex-col items-center justify-center p-8';
 
   return (
-    <div className={containerClasses}>
+    <div className={containerClasses} role="status" aria-live="polite" aria-label={text || 'Loading'}>
       <div className="relative">
         {/* Outer rotating ring - blue gradient */}
         <div className={`${sizeClasses[size]} relative`}>
-          <svg className="animate-spin" viewBox="0 0 100 100" fill="none">
+          <svg className="animate-spin" viewBox="0 0 100 100" fill="none" aria-hidden="true">
             <circle
               cx="50"
               cy="50"
