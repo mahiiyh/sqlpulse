@@ -74,25 +74,25 @@ export default function LandingPage() {
       title: 'Getting Started',
       description: 'Set up your first database connection and run your first query in under 5 minutes.',
       icon: <Play className="w-5 h-5" />,
-      link: '#quick-start'
+      link: '/getting-started'
     },
     {
       title: 'Query Scheduling',
       description: 'Learn how to schedule recurring queries using cron expressions and manage automated workflows.',
       icon: <Clock className="w-5 h-5" />,
-      link: '#scheduling-guide'
+      link: '/query-scheduling-guide'
     },
     {
       title: 'API Integration',
       description: 'Integrate SQLPulse into your applications using our RESTful API and webhooks.',
       icon: <Server className="w-5 h-5" />,
-      link: '#api-docs'
+      link: '/api-integration-guide'
     },
     {
       title: 'Team Collaboration',
       description: 'Set up user roles, permissions, and shared query libraries for your team.',
       icon: <Users className="w-5 h-5" />,
-      link: '#team-guide'
+      link: '/team-collaboration-guide'
     }
   ];
 
@@ -338,9 +338,9 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {guides.map((guide, index) => (
-              <a
+              <Link
                 key={index}
-                href={guide.link}
+                to={guide.link}
                 className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-cyan-500 transition group"
               >
                 <div className="flex items-start justify-between">
@@ -359,7 +359,7 @@ export default function LandingPage() {
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 group-hover:translate-x-1 transition" />
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
 

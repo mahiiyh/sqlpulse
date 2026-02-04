@@ -15,6 +15,10 @@ import Settings from './pages/Settings';
 import Teams from './pages/Teams';
 import TeamDetails from './pages/TeamDetails';
 import Invitations from './pages/Invitations';
+import GettingStarted from './pages/GettingStarted';
+import QuerySchedulingGuide from './pages/QuerySchedulingGuide';
+import APIIntegrationGuide from './pages/APIIntegrationGuide';
+import TeamCollaborationGuide from './pages/TeamCollaborationGuide';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -24,6 +28,12 @@ function App() {
       {/* Public landing page */}
       <Route path="/" element={!isAuthenticated ? <LandingPage /> : <Navigate to="/dashboard" />} />
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
+      
+      {/* Public guide pages */}
+      <Route path="/getting-started" element={<GettingStarted />} />
+      <Route path="/query-scheduling-guide" element={<QuerySchedulingGuide />} />
+      <Route path="/api-integration-guide" element={<APIIntegrationGuide />} />
+      <Route path="/team-collaboration-guide" element={<TeamCollaborationGuide />} />
       
       {/* Protected app routes */}
       <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
