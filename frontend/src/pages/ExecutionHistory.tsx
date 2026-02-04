@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 import Loader from '../components/Loader';
 
 interface Execution {
@@ -73,7 +74,7 @@ export default function ExecutionHistory() {
       const response = await apiClient.get('/history', { params });
       setExecutions(response.data.data.executions);
     } catch (error) {
-      console.error('Failed to fetch execution history:', error);
+      logger.error('Failed to fetch execution history:', error);
     } finally {
       // Ensure loader shows for at least 600ms for better UX
       const elapsedTime = Date.now() - startTime;
@@ -87,7 +88,7 @@ export default function ExecutionHistory() {
       const response = await apiClient.get('/history/stats', { params: { days: 7 } });
       setStats(response.data.data);
     } catch (error) {
-      console.error('Failed to fetch stats:', error);
+      logger.error('Failed to fetch stats:', error);
     }
   };
 

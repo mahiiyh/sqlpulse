@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 import toast from 'react-hot-toast';
 import Loader from './Loader';
 
@@ -81,7 +82,7 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
       const response = await apiClient.get(`/schedules/${scheduleId}/dependencies`);
       setDependencies(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch dependencies:', error);
+      logger.error('Failed to fetch dependencies:', error);
     }
   };
 
@@ -92,7 +93,7 @@ export default function ScheduleDetailModal({ scheduleId, isOpen, onClose, onUpd
       const response = await apiClient.get(`/schedules/${scheduleId}/history?limit=20`);
       setExecutionHistory(response.data.data?.executions || []);
     } catch (error) {
-      console.error('Failed to fetch execution history:', error);
+      logger.error('Failed to fetch execution history:', error);
     }
   };
 

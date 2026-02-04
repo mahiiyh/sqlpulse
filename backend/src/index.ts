@@ -63,4 +63,30 @@ const startServer = async () => {
 
 startServer();
 
+// Global error handlers for unhandled rejections and exceptions
+process.on('unhandledRejection', (reason: Error, promise: Promise<any>) => {
+  logger.error('🔴 Unhandled Rejection:', {
+    reason: reason.message,
+    stack: reason.stack,
+    promise
+  });
+  
+  // In production, you might want to exit and let process manager restart
+  if (process.env.NODE_ENV === 'production') {
+    logger.error('Exiting due to unhandled rejection');
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error('🔴 Uncaught Exception:', {
+    message: error.message,
+    stack: error.stack
+  });
+  
+  // Always exit on uncaught exception
+  logger.error('Exiting due to uncaught exception');
+  process.exit(1);
+});
+
 export default app;

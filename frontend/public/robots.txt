@@ -1,6 +1,47 @@
-# https://www.robotstxt.org/robotstxt.html
+# SQLPulse Robots.txt
+# https://sqlpulse.mahiiyh.me/robots.txt
+
+# Allow all search engines to index public pages
 User-agent: *
 Allow: /
+Allow: /login
+Allow: /register
 
-# Sitemap
+# Disallow authenticated app pages (require login)
+Disallow: /dashboard
+Disallow: /queries
+Disallow: /editor
+Disallow: /connections
+Disallow: /schedules
+Disallow: /history
+Disallow: /templates
+Disallow: /teams
+Disallow: /invitations
+Disallow: /settings
+Disallow: /admin
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Allow static assets for proper rendering
+Allow: /*.css
+Allow: /*.js
+Allow: /*.svg
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.webp
+
+# Sitemap location
 Sitemap: https://sqlpulse.mahiiyh.me/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1

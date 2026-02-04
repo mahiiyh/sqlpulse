@@ -85,7 +85,7 @@ export const restoreQueryVersion = async (req: AuthRequest, res: Response, next:
     }
 
     const version = await QueryVersion.findByPk(versionId);
-    if (!version || version.query_id !== parseInt(queryId)) {
+    if (!version || version.query_id !== parseInt(queryId, 10)) {
       throw new AppError('Version not found', 404);
     }
 
@@ -96,7 +96,7 @@ export const restoreQueryVersion = async (req: AuthRequest, res: Response, next:
 
     // Create new version with current content before restoring
     await QueryVersion.create({
-      query_id: parseInt(queryId),
+      query_id: parseInt(queryId, 10),
       version_number: maxVersion + 1,
       sql_content: query.sql_content,
       change_description: change_description || `Restored to version ${version.version_number}`,
@@ -141,8 +141,8 @@ export const compareQueryVersions = async (req: AuthRequest, res: Response, next
     }
 
     const [v1, v2] = await Promise.all([
-      QueryVersion.findOne({ where: { query_id: queryId, version_number: parseInt(version1 as string) } }),
-      QueryVersion.findOne({ where: { query_id: queryId, version_number: parseInt(version2 as string) } })
+      QueryVersion.findOne({ where: { query_id: queryId, version_number: parseInt(version1 as string, 10) } }),
+      QueryVersion.findOne({ where: { query_id: queryId, version_number: parseInt(version2 as string, 10) } })
     ]);
 
     if (!v1 || !v2) {

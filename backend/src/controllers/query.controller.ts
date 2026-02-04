@@ -29,25 +29,33 @@ export const getQueries = async (req: AuthRequest, res: Response, next: NextFunc
 
     // Show user's own queries + public queries + team-shared queries, or all if admin with showAll=true
     if (!showAll) {
-      // Get user's teams
-      const userTeamMemberships = await TeamMember.findAll({
-        where: { user_id: req.user.id },
-        attributes: ['team_id']
-      });
-      const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
+      let sharedQueryIds: number[] = [];
+      
+      try {
+        // Get user's teams - gracefully handle if team tables don't exist
+        const userTeamMemberships = await TeamMember.findAll({
+          where: { user_id: req.user.id },
+          attributes: ['team_id']
+        });
+        const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
 
-      // Get queries shared with user's teams
-      const sharedQueryIds = userTeamIds.length > 0 
-        ? await TeamQuery.findAll({
+        // Get queries shared with user's teams
+        if (userTeamIds.length > 0) {
+          const teamQueries = await TeamQuery.findAll({
             where: { team_id: { [Op.in]: userTeamIds } },
             attributes: ['query_id']
-          }).then(tqs => tqs.map(tq => tq.query_id))
-        : [];
+          });
+          sharedQueryIds = teamQueries.map(tq => tq.query_id);
+        }
+      } catch (teamError) {
+        // If team queries fail, continue with empty shared list
+        console.warn('Team query lookup failed, showing only owned and public queries:', teamError);
+      }
 
       where[Op.or] = [
         { created_by: req.user.id },
         { is_public: true },
-        { id: { [Op.in]: sharedQueryIds } }
+        ...(sharedQueryIds.length > 0 ? [{ id: { [Op.in]: sharedQueryIds } }] : [])
       ];
     }
 
@@ -275,7 +283,7 @@ export const executeQuery = async (req: AuthRequest, res: Response, next: NextFu
 
     // Create execution history record
     executionHistory = await ExecutionHistory.create({
-      query_id: parseInt(id),
+      query_id: parseInt(id, 10),
       connection_id: connection_id,
       executed_by: req.user.id,
       execution_type: ExecutionType.MANUAL,
@@ -406,7 +414,7 @@ export const exportQueryResults = async (req: AuthRequest, res: Response, next: 
       }
 
       // Verify the execution belongs to this query
-      if (execution.query_id !== parseInt(id)) {
+      if (execution.query_id !== parseInt(id, 10)) {
         throw new AppError('Execution does not belong to this query', 400);
       }
 

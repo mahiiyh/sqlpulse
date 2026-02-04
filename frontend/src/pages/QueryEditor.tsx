@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import apiClient from '../lib/api';
 import toast from 'react-hot-toast';
+import { logger } from '../utils/logger';
 
 interface Connection {
   id: number;
@@ -61,7 +62,7 @@ export default function QueryEditor() {
         setSelectedConnectionId(response.data.data[0].id);
       }
     } catch (error) {
-      console.error('Failed to fetch connections:', error);
+      logger.error('Failed to fetch connections:', error);
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'smtp' | 'slack'>('smtp');
@@ -43,7 +44,7 @@ const Settings: React.FC = () => {
         channel: '#general',
       });
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      logger.error('Failed to load settings:', error);
     }
   };
 

@@ -69,8 +69,8 @@ export const getExecutionHistory = async (req: AuthRequest, res: Response, next:
       where,
       include,
       order: [['executed_at', 'DESC']],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string)
+      limit: parseInt(limit as string, 10),
+      offset: parseInt(offset as string, 10)
     });
 
     res.json({
@@ -78,8 +78,8 @@ export const getExecutionHistory = async (req: AuthRequest, res: Response, next:
       data: {
         executions: rows,
         total: count,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
+        limit: parseInt(limit as string, 10),
+        offset: parseInt(offset as string, 10)
       }
     });
   } catch (error) {
@@ -159,8 +159,8 @@ export const getQueryHistory = async (req: AuthRequest, res: Response, next: Nex
         }
       ],
       order: [['executed_at', 'DESC']],
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string)
+      limit: parseInt(limit as string, 10),
+      offset: parseInt(offset as string, 10)
     });
 
     res.json({
@@ -168,8 +168,8 @@ export const getQueryHistory = async (req: AuthRequest, res: Response, next: Nex
       data: {
         executions: rows,
         total: count,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
+        limit: parseInt(limit as string, 10),
+        offset: parseInt(offset as string, 10)
       }
     });
   } catch (error) {
@@ -181,7 +181,7 @@ export const getExecutionStats = async (req: AuthRequest, res: Response, next: N
   try {
     const { days = 7 } = req.query;
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days as string));
+    startDate.setDate(startDate.getDate() - parseInt(days as string, 10));
 
     const where: any = {
       executed_at: {

@@ -21,20 +21,28 @@ export const getConnections = async (req: AuthRequest, res: Response, next: Next
       return;
     }
 
-    // Get user's teams
-    const userTeamMemberships = await TeamMember.findAll({
-      where: { user_id: req.user.id },
-      attributes: ['team_id']
-    });
-    const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
+    let sharedConnectionIds: number[] = [];
+    
+    try {
+      // Get user's teams - gracefully handle if team tables don't exist
+      const userTeamMemberships = await TeamMember.findAll({
+        where: { user_id: req.user.id },
+        attributes: ['team_id']
+      });
+      const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
 
-    // Get connections shared with user's teams
-    const sharedConnectionIds = userTeamIds.length > 0 
-      ? await TeamConnection.findAll({
+      // Get connections shared with user's teams
+      if (userTeamIds.length > 0) {
+        const teamConnections = await TeamConnection.findAll({
           where: { team_id: { [Op.in]: userTeamIds } },
           attributes: ['connection_id']
-        }).then(tcs => tcs.map(tc => tc.connection_id))
-      : [];
+        });
+        sharedConnectionIds = teamConnections.map(tc => tc.connection_id);
+      }
+    } catch (teamError) {
+      // If team queries fail, continue with empty shared list
+      console.warn('Team connection lookup failed, showing only owned connections:', teamError);
+    }
 
     // Get connections: owned by user OR shared with their teams
     const connections = await Connection.findAll({
@@ -42,7 +50,7 @@ export const getConnections = async (req: AuthRequest, res: Response, next: Next
         is_active: true,
         [Op.or]: [
           { created_by: req.user.id },
-          { id: { [Op.in]: sharedConnectionIds } }
+          ...(sharedConnectionIds.length > 0 ? [{ id: { [Op.in]: sharedConnectionIds } }] : [])
         ]
       },
       attributes: { exclude: ['encrypted_password'] }

@@ -1,7 +1,7 @@
 {
   "name": "SQLPulse - SQL Query Management & Automation",
   "short_name": "SQLPulse",
-  "description": "Modern SQL query management platform for developers and teams. Schedule, execute, and monitor database queries.",
+  "description": "Modern SQL query management platform for developers and teams. Schedule, execute, and monitor database queries with real-time analytics across PostgreSQL, MySQL, SQL Server, and more.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -14,5 +14,39 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": [
+    "productivity",
+    "business",
+    "developer tools",
+    "database"
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View query execution dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logo-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "New Query",
+      "short_name": "New Query",
+      "description": "Create a new SQL query",
+      "url": "/editor",
+      "icons": [{ "src": "/logo-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Schedules",
+      "short_name": "Schedules",
+      "description": "Manage query schedules",
+      "url": "/schedules",
+      "icons": [{ "src": "/logo-icon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr"
 }

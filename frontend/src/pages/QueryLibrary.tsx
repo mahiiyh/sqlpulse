@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 import ShareWithTeamModal from '../components/ShareWithTeamModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useToast } from '../hooks/useToast';
@@ -37,7 +38,7 @@ export default function QueryLibrary() {
       const response = await apiClient.get('/auth/me');
       setCurrentUserId(response.data.data.id);
     } catch (error) {
-      console.error('Failed to fetch current user:', error);
+      logger.error('Failed to fetch current user:', error);
     }
   };
 
@@ -47,7 +48,7 @@ export default function QueryLibrary() {
       const response = await apiClient.get('/queries');
       setQueries(response.data.data || []);
     } catch (error) {
-      console.error('Failed to fetch queries:', error);
+      logger.error('Failed to fetch queries:', error);
     } finally {
       setLoading(false);
     }
@@ -66,7 +67,7 @@ export default function QueryLibrary() {
       setQueries(queries.filter(q => q.id !== query.id));
       toast.success(`Query "${query.name}" deleted successfully!`);
     } catch (error: any) {
-      console.error('Failed to delete query:', error);
+      logger.error('Failed to delete query:', error);
       if (error.response?.status === 403) {
         toast.error('You can only delete queries you created');
       } else {

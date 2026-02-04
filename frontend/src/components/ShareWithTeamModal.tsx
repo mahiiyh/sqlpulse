@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { teamService, Team } from '../lib/teamService';
+import { logger } from '../utils/logger';
 
 interface ShareWithTeamModalProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ export default function ShareWithTeamModal({
       const data = await teamService.getTeams();
       setTeams(data);
     } catch (error) {
-      console.error('Failed to load teams:', error);
+      logger.error('Failed to load teams:', error);
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export default function ShareWithTeamModal({
       onSuccess?.();
       onClose();
     } catch (error: any) {
-      console.error(`Failed to share ${resourceType}:`, error);
+      logger.error(`Failed to share ${resourceType}:`, error);
       const message = error.response?.data?.message || `Failed to share ${resourceType} with ${teamName}`;
       onError?.(message);
     } finally {

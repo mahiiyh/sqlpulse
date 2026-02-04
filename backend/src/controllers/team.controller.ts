@@ -52,7 +52,7 @@ export const getTeams = async (req: AuthRequest, res: Response, next: NextFuncti
 // Get a single team by ID
 export const getTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const teamId = parseInt(req.params.id);
+    const teamId = parseInt(req.params.id, 10);
 
     // Check if user is a member of this team
     const membership = await TeamMember.findOne({
@@ -167,7 +167,7 @@ export const createTeam = async (req: AuthRequest, res: Response, next: NextFunc
 // Update a team
 export const updateTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const teamId = parseInt(req.params.id);
+    const teamId = parseInt(req.params.id, 10);
     const { name, description } = req.body;
 
     // Check if user is owner or admin
@@ -205,7 +205,7 @@ export const updateTeam = async (req: AuthRequest, res: Response, next: NextFunc
 // Delete a team
 export const deleteTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const teamId = parseInt(req.params.id);
+    const teamId = parseInt(req.params.id, 10);
 
     // Check if user is the owner
     const membership = await TeamMember.findOne({

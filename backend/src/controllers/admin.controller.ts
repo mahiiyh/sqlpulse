@@ -112,7 +112,7 @@ export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunc
     const { id } = req.params;
 
     // Prevent self-deletion
-    if (parseInt(id) === req.user.id) {
+    if (parseInt(id, 10) === req.user.id) {
       throw new AppError('You cannot delete your own account', 400);
     }
 

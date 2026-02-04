@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 import ShareWithTeamModal from '../components/ShareWithTeamModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useToast } from '../hooks/useToast';
@@ -49,7 +50,7 @@ export default function Connections() {
       const response = await apiClient.get('/auth/me');
       setCurrentUserId(response.data.data.id);
     } catch (error) {
-      console.error('Failed to fetch current user:', error);
+      logger.error('Failed to fetch current user:', error);
     }
   };
 
@@ -59,7 +60,7 @@ export default function Connections() {
       const response = await apiClient.get('/connections');
       setConnections(response.data.data || []);
     } catch (error) {
-      console.error('Failed to fetch connections:', error);
+      logger.error('Failed to fetch connections:', error);
     } finally {
       setLoading(false);
     }
@@ -83,7 +84,7 @@ export default function Connections() {
       toast.success('Connection created successfully!');
       fetchConnections();
     } catch (error: any) {
-      console.error('Failed to create connection:', error);
+      logger.error('Failed to create connection:', error);
       toast.error(error.response?.data?.message || 'Failed to create connection');
     }
   };
@@ -101,7 +102,7 @@ export default function Connections() {
       toast.success(`Connection "${connection.name}" deleted successfully!`);
       fetchConnections();
     } catch (error: any) {
-      console.error('Failed to delete connection:', error);
+      logger.error('Failed to delete connection:', error);
       if (error.response?.status === 403) {
         toast.error('You can only delete connections you created');
       } else {

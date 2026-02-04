@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../lib/api';
-import Loader from '../components/Loader';
+import apiClient from '../lib/api';import { logger } from '../utils/logger';import Loader from '../components/Loader';
 
 interface QueryTemplate {
   id: number;
@@ -57,7 +56,7 @@ const QueryTemplates: React.FC = () => {
       );
       setCategories(uniqueCategories as string[]);
     } catch (error) {
-      console.error('Failed to fetch templates:', error);
+      logger.error('Failed to fetch templates:', error);
     } finally {
       // Ensure loader shows for at least 500ms for better UX
       const elapsedTime = Date.now() - startTime;
@@ -83,7 +82,7 @@ const QueryTemplates: React.FC = () => {
       });
       fetchTemplates();
     } catch (error) {
-      console.error('Failed to create template:', error);
+      logger.error('Failed to create template:', error);
     }
   };
 
@@ -99,7 +98,7 @@ const QueryTemplates: React.FC = () => {
       await apiClient.delete(`/query-templates/${id}`);
       fetchTemplates();
     } catch (error) {
-      console.error('Failed to delete template:', error);
+      logger.error('Failed to delete template:', error);
     }
   };
 

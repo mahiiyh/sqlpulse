@@ -90,7 +90,7 @@ export class NotificationService {
 
     const transporter = nodemailer.createTransport({
       host: config.smtpHost || process.env.SMTP_HOST || 'localhost',
-      port: config.smtpPort || parseInt(process.env.SMTP_PORT || '587'),
+      port: config.smtpPort || parseInt(process.env.SMTP_PORT || '587', 10),
       secure: false,
       auth: config.smtpUser ? {
         user: config.smtpUser,

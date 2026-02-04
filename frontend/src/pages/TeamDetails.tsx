@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Team, User, teamService } from '../lib/teamService';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 import Loader from '../components/Loader';
 
 interface Connection {
@@ -91,7 +92,7 @@ export default function TeamDetails() {
       const sharedResponse = await apiClient.get(`/teams/${teamId}/connections`);
       setSharedConnections(sharedResponse.data.data || []);
     } catch (err: any) {
-      console.error('Failed to fetch connections:', err);
+      logger.error('Failed to fetch connections:', err);
     } finally {
       setLoadingResources(false);
     }
@@ -110,7 +111,7 @@ export default function TeamDetails() {
       const sharedResponse = await apiClient.get(`/teams/${teamId}/queries`);
       setSharedQueries(sharedResponse.data.data || []);
     } catch (err: any) {
-      console.error('Failed to fetch queries:', err);
+      logger.error('Failed to fetch queries:', err);
     } finally {
       setLoadingResources(false);
     }

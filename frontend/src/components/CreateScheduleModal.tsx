@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import apiClient from '../lib/api';
+import { logger } from '../utils/logger';
 
 interface CreateScheduleModalProps {
   isOpen: boolean;
@@ -45,7 +46,7 @@ export default function CreateScheduleModal({ isOpen, onClose, onSuccess }: Crea
       const response = await apiClient.get('/queries');
       setQueries(response.data.data || []);
     } catch (error) {
-      console.error('Failed to fetch queries:', error);
+      logger.error('Failed to fetch queries:', error);
     }
   };
 
@@ -54,7 +55,7 @@ export default function CreateScheduleModal({ isOpen, onClose, onSuccess }: Crea
       const response = await apiClient.get('/connections');
       setConnections(response.data.data || []);
     } catch (error) {
-      console.error('Failed to fetch connections:', error);
+      logger.error('Failed to fetch connections:', error);
     }
   };
 
@@ -81,7 +82,7 @@ export default function CreateScheduleModal({ isOpen, onClose, onSuccess }: Crea
         is_enabled: true
       });
     } catch (error) {
-      console.error('Failed to create schedule:', error);
+      logger.error('Failed to create schedule:', error);
       alert('Failed to create schedule');
     } finally {
       setLoading(false);

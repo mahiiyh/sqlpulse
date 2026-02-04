@@ -54,31 +54,143 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "SQLPulse",
+      "alternateName": "SQL Pulse Database Management",
       "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Web",
+      "applicationSubCategory": "Database Management Tool",
+      "operatingSystem": "Web, Cross-platform",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       },
-      "description": "Modern SQL query management and automation platform. Schedule, execute, and monitor database queries across PostgreSQL, MySQL, and SQL Server.",
+      "description": "Modern SQL query management and automation platform. Schedule, execute, and monitor database queries across PostgreSQL, MySQL, SQL Server, and more. Built for developers and teams with real-time analytics, version control, and enterprise-grade security.",
       "url": "https://sqlpulse.mahiiyh.me",
+      "softwareVersion": "1.0.0",
+      "datePublished": "2026-01-30",
+      "dateModified": "2026-02-04",
       "author": {
+        "@type": "Organization",
+        "name": "SQLPulse",
+        "url": "https://sqlpulse.mahiiyh.me"
+      },
+      "publisher": {
         "@type": "Organization",
         "name": "SQLPulse"
       },
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "4.8",
-        "ratingCount": "127"
+        "ratingCount": "127",
+        "bestRating": "5",
+        "worstRating": "1"
       },
       "featureList": [
-        "Multi-Database Support",
-        "Query Scheduling",
-        "Real-time Analytics",
-        "Version Control",
-        "Enterprise Security",
-        "Advanced Query Editor"
+        "Multi-Database Support (PostgreSQL, MySQL, SQL Server, SQLite)",
+        "Smart Query Scheduling with Cron Expressions",
+        "Advanced SQL Query Editor with Syntax Highlighting",
+        "Real-time Analytics and Performance Monitoring",
+        "Query Version Control and History",
+        "Enterprise Security with RBAC",
+        "Team Collaboration and Sharing",
+        "Automated Notifications (Email, Slack, Teams)",
+        "Query Templates and Libraries",
+        "Export Results (CSV, Excel, JSON)"
+      ],
+      "screenshot": "https://sqlpulse.mahiiyh.me/logo-icon.svg",
+      "downloadUrl": "https://sqlpulse.mahiiyh.me",
+      "installUrl": "https://sqlpulse.mahiiyh.me/register",
+      "softwareRequirements": "Modern web browser (Chrome, Firefox, Safari, Edge)",
+      "permissions": "Database connection credentials required",
+      "releaseNotes": "https://github.com/mahiiyh/sqlpulse/releases",
+      "softwareHelp": {
+        "@type": "CreativeWork",
+        "url": "https://github.com/mahiiyh/sqlpulse#readme"
+      }
+    }
+    </script>
+    
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "SQLPulse",
+      "url": "https://sqlpulse.mahiiyh.me",
+      "logo": "https://sqlpulse.mahiiyh.me/logo-icon.svg",
+      "description": "Modern SQL query management and automation platform for developers and teams",
+      "foundingDate": "2026",
+      "sameAs": [
+        "https://github.com/mahiiyh/sqlpulse"
+      ]
+    }
+    </script>
+    
+    <!-- WebApplication Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SQLPulse",
+      "url": "https://sqlpulse.mahiiyh.me",
+      "description": "Automate SQL queries with scheduling, monitoring, and analytics",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0.0",
+      "operatingSystem": "Any",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0"
+      }
+    }
+    </script>
+    
+    <!-- FAQ Schema for Common Questions -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What databases does SQLPulse support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SQLPulse supports PostgreSQL, MySQL, Microsoft SQL Server, SQLite, and other SQL-compatible databases. You can connect to multiple databases simultaneously and manage them from a single interface."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I schedule SQL queries?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use cron expressions to schedule queries at specific intervals. SQLPulse supports automatic retries, parallel execution, and intelligent job queue management for reliable query execution."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is SQLPulse secure?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. SQLPulse includes enterprise-grade security with role-based access control (RBAC), encrypted database connections, audit logs, JWT authentication, and password encryption with bcrypt."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use SQLPulse for team collaboration?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely. SQLPulse includes built-in team features: share queries, templates, and database connections. Manage team members with different permission levels and track all changes with version control."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is SQLPulse open source?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SQLPulse is 100% open source under the MIT License. You can view the source code, contribute, or self-host on GitHub: https://github.com/mahiiyh/sqlpulse"
+          }
+        }
       ]
     }
     </script>

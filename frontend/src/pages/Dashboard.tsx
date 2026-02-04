@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 import {
   LineChart,
   Line,
@@ -120,7 +121,7 @@ export default function Dashboard() {
       }
 
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      logger.error('Failed to fetch dashboard data:', error);
     } finally {
       // Ensure loader shows for at least 800ms for better UX
       const elapsedTime = Date.now() - startTime;
@@ -139,7 +140,7 @@ export default function Dashboard() {
       setQueueStats(queueRes.data.data);
       setActiveJobs(jobsRes.data.data || []);
     } catch (error) {
-      console.error('Failed to refresh queue data:', error);
+      logger.error('Failed to refresh queue data:', error);
     }
   };
 
