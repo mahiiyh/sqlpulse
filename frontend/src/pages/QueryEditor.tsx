@@ -48,9 +48,17 @@ export default function QueryEditor() {
     fetchConnections();
     if (id) {
       fetchQuery();
-    } else if (location.state?.sql) {
-      // Load template SQL if provided
-      setFormData(prev => ({ ...prev, sql_content: location.state.sql }));
+    } else if (location.state) {
+      // Load template data if provided
+      const { sql, name, category, database_type, description } = location.state as any;
+      setFormData(prev => ({
+        ...prev,
+        ...(sql && { sql_content: sql }),
+        ...(name && { name }),
+        ...(category && { category }),
+        ...(database_type && { database_type }),
+        ...(description && { description })
+      }));
     }
   }, [id, location.state]);
 

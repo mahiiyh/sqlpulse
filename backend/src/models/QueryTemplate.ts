@@ -7,6 +7,7 @@ interface QueryTemplateAttributes {
   description: string | null;
   sql_template: string;
   category: string;
+  database_type: string | null;
   tags: string[];
   variables: Record<string, any> | null;
   created_by: number;
@@ -14,7 +15,7 @@ interface QueryTemplateAttributes {
   updated_at: Date;
 }
 
-interface QueryTemplateCreationAttributes extends Optional<QueryTemplateAttributes, 'id' | 'description' | 'tags' | 'variables' | 'created_at' | 'updated_at'> {}
+interface QueryTemplateCreationAttributes extends Optional<QueryTemplateAttributes, 'id' | 'description' | 'database_type' | 'tags' | 'variables' | 'created_at' | 'updated_at'> {}
 
 class QueryTemplate extends Model<QueryTemplateAttributes, QueryTemplateCreationAttributes> implements QueryTemplateAttributes {
   public id!: number;
@@ -22,6 +23,7 @@ class QueryTemplate extends Model<QueryTemplateAttributes, QueryTemplateCreation
   public description!: string | null;
   public sql_template!: string;
   public category!: string;
+  public database_type!: string | null;
   public tags!: string[];
   public variables!: Record<string, any> | null;
   public created_by!: number;
@@ -52,6 +54,11 @@ QueryTemplate.init(
       type: DataTypes.STRING(100),
       allowNull: false,
       defaultValue: 'General',
+    database_type: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: 'Database type: postgresql, mysql, sqlserver, etc.',
+    },
     },
     tags: {
       type: DataTypes.ARRAY(DataTypes.STRING),

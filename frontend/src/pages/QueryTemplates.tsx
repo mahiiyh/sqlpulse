@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../lib/api';import { logger } from '../utils/logger';import Loader from '../components/Loader';
 
 interface QueryTemplate {
-  id: number;
+  id: number | string;
   name: string;
   description: string | null;
   sql_template: string;
   category: string;
+  database_type?: string;
   tags: string[];
   variables: Record<string, any> | null;
-  creator: {
+  is_system?: boolean;
+  creator?: {
     id: number;
     username: string;
     email: string;
@@ -148,18 +150,33 @@ const QueryTemplates: React.FC = () => {
           >
             <div className="flex justify-between items-start mb-2">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</h3>
-              <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                {template.category}
-              </span>
+              <div className="flex gap-2">
+                {template.is_system && (
+                  <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">
+                    System
+                  </span>
+                )}
+                <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
+                  {template.category}
+                </span>
+              </div>
             </div>
 
             {template.description && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{template.description}</p>
             )}
 
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Created by {template.creator?.username || 'Unknown'} • {new Date(template.created_at).toLocaleDateString()}
-            </div>
+            {!template.is_system && template.creator && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Created by {template.creator.username} • {new Date(template.created_at).toLocaleDateString()}
+              </div>
+            )}
+
+            {template.database_type && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                🗄️ {template.database_type.toUpperCase()}
+              </div>
+            )}
 
             <div className="mb-4">
               <code className="text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900 p-2 rounded block overflow-x-auto">
@@ -188,12 +205,14 @@ const QueryTemplates: React.FC = () => {
               >
                 Use Template
               </button>
-              <button
-                onClick={() => handleDeleteTemplate(template.id)}
-                className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-              >
-                Delete
-              </button>
+              {!template.is_system && (
+                <button
+                  onClick={() => handleDeleteTemplate(template.id as number)}
+                  className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         ))}
