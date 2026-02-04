@@ -76,6 +76,7 @@ export class QueryExecutor {
 
   async execute(jobData: JobData, attemptsMade: number = 0) {
     const startTime = Date.now();
+    let executionId: number | undefined;
     
     try {
       // Fetch query, connection and schedule details
@@ -84,7 +85,7 @@ export class QueryExecutor {
       const schedule = await this.getSchedule(jobData.scheduleId);
       
       // Create execution record with schedule owner
-      const executionId = await this.createExecutionRecord(jobData, schedule.created_by, attemptsMade);
+      executionId = await this.createExecutionRecord(jobData, schedule.created_by, attemptsMade);
 
       logger.info(`Executing query "${query.name}" on ${connection.type} database`);
 
@@ -137,12 +138,14 @@ export class QueryExecutor {
 
       logger.error(`Query execution failed:`, error);
 
-      // Update execution record with failure
-      await this.updateExecutionRecord(executionId, {
-        status: 'failed',
-        executionTime,
-        errorMessage: error.message
-      });
+      // Update execution record with failure if it was created
+      if (executionId) {
+        await this.updateExecutionRecord(executionId, {
+          status: 'failed',
+          executionTime,
+          errorMessage: error.message
+        });
+      }
 
       // Fetch schedule for notification
       const schedule = await this.getSchedule(jobData.scheduleId);
