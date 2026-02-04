@@ -580,7 +580,7 @@ export default function Dashboard() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Query
@@ -598,7 +598,7 @@ export default function Dashboard() {
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {recentExecutions.map((execution: any) => (
-                        <tr key={execution.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr key={execution.id} className="hover:bg-gray-50 dark:bg-gray-700/50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {execution.query?.name || 'N/A'}
                           </td>
@@ -606,10 +606,10 @@ export default function Dashboard() {
                             <span
                               className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                 execution.status === 'success'
-                                  ? 'bg-green-100 text-green-800'
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                                   : execution.status === 'failed'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                               }`}
                             >
                               {execution.status}
@@ -651,7 +651,7 @@ export default function Dashboard() {
                   {upcomingSchedules.slice(0, 5).map((schedule: any) => (
                     <div
                       key={schedule.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                       onClick={() => navigate('/schedules')}
                     >
                       <div className="flex-1">
@@ -672,7 +672,7 @@ export default function Dashboard() {
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
                           schedule.is_enabled
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >

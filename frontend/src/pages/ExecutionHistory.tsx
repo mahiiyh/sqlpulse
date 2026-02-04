@@ -94,13 +94,13 @@ export default function ExecutionHistory() {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
       case 'running':
         return 'bg-blue-100 text-blue-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
       case 'cancelled':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -111,11 +111,11 @@ export default function ExecutionHistory() {
   const getEnvironmentBadgeClass = (env: string) => {
     switch (env) {
       case 'production':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
       case 'uat':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
       case 'dev':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -251,7 +251,7 @@ export default function ExecutionHistory() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700/50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Query
@@ -281,7 +281,7 @@ export default function ExecutionHistory() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {executions.map((execution) => (
-                  <tr key={execution.id} className="hover:bg-gray-50">
+                  <tr key={execution.id} className="hover:bg-gray-50 dark:bg-gray-700/50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {execution.query ? (

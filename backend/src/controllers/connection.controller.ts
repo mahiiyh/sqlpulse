@@ -1,26 +1,50 @@
 import { Response, NextFunction } from 'express';
 import { Connection } from '../models/Connection';
+import { TeamConnection, TeamMember } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { encrypt } from '../utils/encryption';
 import { QueryExecutor } from '../services/queryExecutor';
+import { Op } from 'sequelize';
 
-export const getConnections = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getConnections = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Admin can see all connections with ?showAll=true
     const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
     
-    // TODO: Future feature - Team/Group Sharing
-    // Add support for: is_shared_with_team, shared_groups[], team_permissions
-    // Allow users to share connections with specific groups/teams they belong to
-    
-    const whereClause: any = { is_active: true };
-    if (!showAll) {
-      whereClause.created_by = req.user.id;
+    if (showAll) {
+      const connections = await Connection.findAll({
+        where: { is_active: true },
+        attributes: { exclude: ['encrypted_password'] }
+      });
+      res.json({ success: true, data: connections });
+      return;
     }
 
+    // Get user's teams
+    const userTeamMemberships = await TeamMember.findAll({
+      where: { user_id: req.user.id },
+      attributes: ['team_id']
+    });
+    const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
+
+    // Get connections shared with user's teams
+    const sharedConnectionIds = userTeamIds.length > 0 
+      ? await TeamConnection.findAll({
+          where: { team_id: { [Op.in]: userTeamIds } },
+          attributes: ['connection_id']
+        }).then(tcs => tcs.map(tc => tc.connection_id))
+      : [];
+
+    // Get connections: owned by user OR shared with their teams
     const connections = await Connection.findAll({
-      where: whereClause,
+      where: {
+        is_active: true,
+        [Op.or]: [
+          { created_by: req.user.id },
+          { id: { [Op.in]: sharedConnectionIds } }
+        ]
+      },
       attributes: { exclude: ['encrypted_password'] }
     });
 
@@ -33,7 +57,7 @@ export const getConnections = async (req: AuthRequest, res: Response, next: Next
   }
 };
 
-export const getConnection = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getConnection = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connection = await Connection.findByPk(req.params.id, {
       attributes: { exclude: ['encrypted_password'] }
@@ -44,14 +68,33 @@ export const getConnection = async (req: AuthRequest, res: Response, next: NextF
     }
 
     // Check if user owns this connection or is admin
-    if (connection.created_by !== req.user.id && req.user.role !== 'admin') {
-      throw new AppError('Access denied: You do not own this connection', 403);
+    if (connection.created_by === req.user.id || req.user.role === 'admin') {
+      res.json({ success: true, data: connection });
+      return;
     }
 
-    res.json({
-      success: true,
-      data: connection
+    // Check if connection is shared with any of user's teams
+    const userTeamMemberships = await TeamMember.findAll({
+      where: { user_id: req.user.id },
+      attributes: ['team_id']
     });
+    const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
+
+    if (userTeamIds.length > 0) {
+      const teamShare = await TeamConnection.findOne({
+        where: {
+          connection_id: connection.id,
+          team_id: { [Op.in]: userTeamIds }
+        }
+      });
+
+      if (teamShare) {
+        res.json({ success: true, data: connection });
+        return;
+      }
+    }
+
+    throw new AppError('Access denied: You do not have access to this connection', 403);
   } catch (error) {
     next(error);
   }

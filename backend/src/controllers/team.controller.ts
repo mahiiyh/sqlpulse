@@ -1,0 +1,950 @@
+import { Response, NextFunction } from 'express';
+import { Team, TeamMember, TeamConnection, TeamQuery, TeamInvitation, User, Connection, Query } from '../models';
+import { AppError } from '../middleware/errorHandler';
+import { AuthRequest } from '../middleware/auth';
+import { Op } from 'sequelize';
+
+// Get all teams for the current user
+export const getTeams = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    // Find all teams where user is a member
+    const teamMemberships = await TeamMember.findAll({
+      where: { user_id: req.user.id },
+      include: [{
+        model: Team,
+        as: 'team',
+        include: [
+          {
+            model: User,
+            as: 'creator',
+            attributes: ['id', 'email', 'username']
+          },
+          {
+            model: TeamMember,
+            as: 'members',
+            include: [{
+              model: User,
+              as: 'user',
+              attributes: ['id', 'email', 'username']
+            }]
+          }
+        ]
+      }]
+    });
+
+    const teams = teamMemberships.map(tm => {
+      const memberData = tm.get({ plain: true }) as any;
+      return {
+        ...memberData.team,
+        userRole: tm.role
+      };
+    });
+
+    res.json({
+      success: true,
+      data: teams
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get a single team by ID
+export const getTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+
+    // Check if user is a member of this team
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: You are not a member of this team', 403);
+    }
+
+    const team = await Team.findByPk(teamId, {
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'email', 'username']
+        },
+        {
+          model: TeamMember,
+          as: 'members',
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['id', 'email', 'username']
+          }]
+        },
+        {
+          model: TeamConnection,
+          as: 'sharedConnections'
+        },
+        {
+          model: TeamQuery,
+          as: 'sharedQueries'
+        }
+      ]
+    });
+
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...team.toJSON(),
+        userRole: membership.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create a new team
+export const createTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { name, description } = req.body;
+
+    if (!name || name.trim().length === 0) {
+      throw new AppError('Team name is required', 400);
+    }
+
+    // Create team
+    const team = await Team.create({
+      name: name.trim(),
+      description: description?.trim() || null,
+      created_by: req.user.id
+    });
+
+    // Add creator as owner
+    await TeamMember.create({
+      team_id: team.id,
+      user_id: req.user.id,
+      role: 'owner'
+    });
+
+    // Fetch the team with associations
+    const createdTeam = await Team.findByPk(team.id, {
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'email', 'username']
+        },
+        {
+          model: TeamMember,
+          as: 'members',
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['id', 'email', 'username']
+          }]
+        }
+      ]
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...createdTeam?.toJSON(),
+        userRole: 'owner'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update a team
+export const updateTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const { name, description } = req.body;
+
+    // Check if user is owner or admin
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: { [Op.in]: ['owner', 'admin'] }
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: Only team owners and admins can update the team', 403);
+    }
+
+    const team = await Team.findByPk(teamId);
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    if (name !== undefined) team.name = name.trim();
+    if (description !== undefined) team.description = description?.trim() || null;
+
+    await team.save();
+
+    res.json({
+      success: true,
+      data: team
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete a team
+export const deleteTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+
+    // Check if user is the owner
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: 'owner'
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: Only team owners can delete the team', 403);
+    }
+
+    const team = await Team.findByPk(teamId);
+    if (!team) {
+      throw new AppError('Team not found', 404);
+    }
+
+    await team.destroy();
+
+    res.json({
+      success: true,
+      message: 'Team deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Add a member to the team
+export const addMember = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const { userEmail, role = 'member' } = req.body;
+
+    if (!userEmail) {
+      throw new AppError('User email is required', 400);
+    }
+
+    // Check if current user is owner or admin
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: { [Op.in]: ['owner', 'admin'] }
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: Only team owners and admins can add members', 403);
+    }
+
+    // Find the user to add
+    const userToAdd = await User.findOne({
+      where: { email: userEmail.toLowerCase() }
+    });
+
+    if (!userToAdd) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Check if already a member
+    const existingMembership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: userToAdd.id
+      }
+    });
+
+    if (existingMembership) {
+      throw new AppError('User is already a member of this team', 400);
+    }
+
+    // Add the member
+    const newMember = await TeamMember.create({
+      team_id: teamId,
+      user_id: userToAdd.id,
+      role: role as 'owner' | 'admin' | 'member'
+    });
+
+    const memberWithUser = await TeamMember.findByPk(newMember.id, {
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'email', 'username']
+      }]
+    });
+
+    res.status(201).json({
+      success: true,
+      data: memberWithUser
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update member role
+export const updateMemberRole = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const memberId = parseInt(req.params.memberId);
+    const { role } = req.body;
+
+    if (!role || !['owner', 'admin', 'member'].includes(role)) {
+      throw new AppError('Valid role is required (owner, admin, member)', 400);
+    }
+
+    // Check if current user is owner
+    const currentUserMembership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: 'owner'
+      }
+    });
+
+    if (!currentUserMembership) {
+      throw new AppError('Access denied: Only team owners can change member roles', 403);
+    }
+
+    const memberToUpdate = await TeamMember.findOne({
+      where: {
+        id: memberId,
+        team_id: teamId
+      }
+    });
+
+    if (!memberToUpdate) {
+      throw new AppError('Member not found', 404);
+    }
+
+    // Prevent removing the last owner
+    if (memberToUpdate.role === 'owner' && role !== 'owner') {
+      const ownerCount = await TeamMember.count({
+        where: {
+          team_id: teamId,
+          role: 'owner'
+        }
+      });
+
+      if (ownerCount <= 1) {
+        throw new AppError('Cannot change role: Team must have at least one owner', 400);
+      }
+    }
+
+    memberToUpdate.role = role;
+    await memberToUpdate.save();
+
+    res.json({
+      success: true,
+      data: memberToUpdate
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Remove a member from the team
+export const removeMember = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const memberId = parseInt(req.params.memberId);
+
+    // Check if current user is owner or admin
+    const currentUserMembership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: { [Op.in]: ['owner', 'admin'] }
+      }
+    });
+
+    if (!currentUserMembership) {
+      throw new AppError('Access denied: Only team owners and admins can remove members', 403);
+    }
+
+    const memberToRemove = await TeamMember.findOne({
+      where: {
+        id: memberId,
+        team_id: teamId
+      }
+    });
+
+    if (!memberToRemove) {
+      throw new AppError('Member not found', 404);
+    }
+
+    // Prevent removing the last owner
+    if (memberToRemove.role === 'owner') {
+      const ownerCount = await TeamMember.count({
+        where: {
+          team_id: teamId,
+          role: 'owner'
+        }
+      });
+
+      if (ownerCount <= 1) {
+        throw new AppError('Cannot remove: Team must have at least one owner', 400);
+      }
+    }
+
+    await memberToRemove.destroy();
+
+    res.json({
+      success: true,
+      message: 'Member removed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Share a connection with the team
+export const shareConnection = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const { connectionId } = req.body;
+
+    if (!connectionId) {
+      throw new AppError('Connection ID is required', 400);
+    }
+
+    // Check if user is a member of the team
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: You are not a member of this team', 403);
+    }
+
+    // Check if connection exists (will be verified when we update connection controller)
+    // For now, just create the share
+    const existingShare = await TeamConnection.findOne({
+      where: {
+        team_id: teamId,
+        connection_id: connectionId
+      }
+    });
+
+    if (existingShare) {
+      throw new AppError('Connection is already shared with this team', 400);
+    }
+
+    const share = await TeamConnection.create({
+      team_id: teamId,
+      connection_id: connectionId,
+      shared_by: req.user.id
+    });
+
+    res.status(201).json({
+      success: true,
+      data: share
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Unshare a connection from the team
+export const unshareConnection = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const connectionId = parseInt(req.params.connectionId);
+
+    // Check if user is owner or admin
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: { [Op.in]: ['owner', 'admin'] }
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: Only team owners and admins can unshare connections', 403);
+    }
+
+    const share = await TeamConnection.findOne({
+      where: {
+        team_id: teamId,
+        connection_id: connectionId
+      }
+    });
+
+    if (!share) {
+      throw new AppError('Connection share not found', 404);
+    }
+
+    await share.destroy();
+
+    res.json({
+      success: true,
+      message: 'Connection unshared successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Share a query with the team
+export const shareQuery = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const { queryId } = req.body;
+
+    if (!queryId) {
+      throw new AppError('Query ID is required', 400);
+    }
+
+    // Check if user is a member of the team
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: You are not a member of this team', 403);
+    }
+
+    const existingShare = await TeamQuery.findOne({
+      where: {
+        team_id: teamId,
+        query_id: queryId
+      }
+    });
+
+    if (existingShare) {
+      throw new AppError('Query is already shared with this team', 400);
+    }
+
+    const share = await TeamQuery.create({
+      team_id: teamId,
+      query_id: queryId,
+      shared_by: req.user.id
+    });
+
+    res.status(201).json({
+      success: true,
+      data: share
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Unshare a query from the team
+export const unshareQuery = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const queryId = parseInt(req.params.queryId);
+
+    // Check if user is owner or admin
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id,
+        role: { [Op.in]: ['owner', 'admin'] }
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: Only team owners and admins can unshare queries', 403);
+    }
+
+    const share = await TeamQuery.findOne({
+      where: {
+        team_id: teamId,
+        query_id: queryId
+      }
+    });
+
+    if (!share) {
+      throw new AppError('Query share not found', 404);
+    }
+
+    await share.destroy();
+
+    res.json({
+      success: true,
+      message: 'Query unshared successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Send team invitation
+export const sendInvitation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    const { userEmail } = req.body;
+
+    if (!userEmail) {
+      throw new AppError('User email is required', 400);
+    }
+
+    // Check if user is a member of the team (any member can invite)
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: You are not a member of this team', 403);
+    }
+
+    const normalizedEmail = userEmail.toLowerCase();
+
+    // Check if user is inviting themselves
+    if (normalizedEmail === req.user.email.toLowerCase()) {
+      throw new AppError('You cannot invite yourself', 400);
+    }
+
+    // Check if user exists
+    const inviteeUser = await User.findOne({
+      where: { email: normalizedEmail }
+    });
+
+    // Check if user is already a member
+    if (inviteeUser) {
+      const existingMembership = await TeamMember.findOne({
+        where: {
+          team_id: teamId,
+          user_id: inviteeUser.id
+        }
+      });
+
+      if (existingMembership) {
+        throw new AppError('User is already a member of this team', 400);
+      }
+    }
+
+    // Check if there's already a pending invitation
+    const existingInvitation = await TeamInvitation.findOne({
+      where: {
+        team_id: teamId,
+        invitee_email: normalizedEmail,
+        status: 'pending'
+      }
+    });
+
+    if (existingInvitation) {
+      throw new AppError('An invitation has already been sent to this user', 400);
+    }
+
+    // Create invitation
+    const invitation = await TeamInvitation.create({
+      team_id: teamId,
+      inviter_id: req.user.id,
+      invitee_email: normalizedEmail,
+      invitee_id: inviteeUser?.id || null,
+      status: 'pending'
+    });
+
+    const invitationWithDetails = await TeamInvitation.findByPk(invitation.id, {
+      include: [
+        {
+          model: Team,
+          as: 'team',
+          attributes: ['id', 'name', 'description']
+        },
+        {
+          model: User,
+          as: 'inviter',
+          attributes: ['id', 'email', 'username']
+        }
+      ]
+    });
+
+    res.status(201).json({
+      success: true,
+      data: invitationWithDetails
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get pending invitations for current user
+export const getMyInvitations = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const invitations = await TeamInvitation.findAll({
+      where: {
+        invitee_email: req.user.email.toLowerCase(),
+        status: 'pending'
+      },
+      include: [
+        {
+          model: Team,
+          as: 'team',
+          attributes: ['id', 'name', 'description'],
+          include: [{
+            model: User,
+            as: 'creator',
+            attributes: ['id', 'email', 'username']
+          }]
+        },
+        {
+          model: User,
+          as: 'inviter',
+          attributes: ['id', 'email', 'username']
+        }
+      ],
+      order: [['invited_at', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: invitations
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Accept team invitation
+export const acceptInvitation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const invitationId = parseInt(req.params.invitationId);
+
+    const invitation = await TeamInvitation.findOne({
+      where: {
+        id: invitationId,
+        invitee_email: req.user.email.toLowerCase(),
+        status: 'pending'
+      }
+    });
+
+    if (!invitation) {
+      throw new AppError('Invitation not found or already responded to', 404);
+    }
+
+    // Check if user is already a member (in case they were added directly)
+    const existingMembership = await TeamMember.findOne({
+      where: {
+        team_id: invitation.team_id,
+        user_id: req.user.id
+      }
+    });
+
+    if (existingMembership) {
+      // Update invitation status but don't add again
+      invitation.status = 'accepted';
+      invitation.responded_at = new Date();
+      invitation.invitee_id = req.user.id;
+      await invitation.save();
+
+      res.json({
+        success: true,
+        message: 'You are already a member of this team'
+      });
+      return;
+    }
+
+    // Add user to team
+    await TeamMember.create({
+      team_id: invitation.team_id,
+      user_id: req.user.id,
+      role: 'member'
+    });
+
+    // Update invitation
+    invitation.status = 'accepted';
+    invitation.responded_at = new Date();
+    invitation.invitee_id = req.user.id;
+    await invitation.save();
+
+    const team = await Team.findByPk(invitation.team_id, {
+      include: [{
+        model: User,
+        as: 'creator',
+        attributes: ['id', 'email', 'username']
+      }]
+    });
+
+    res.json({
+      success: true,
+      message: 'Invitation accepted',
+      data: team
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Decline team invitation
+export const declineInvitation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const invitationId = parseInt(req.params.invitationId);
+
+    const invitation = await TeamInvitation.findOne({
+      where: {
+        id: invitationId,
+        invitee_email: req.user.email.toLowerCase(),
+        status: 'pending'
+      }
+    });
+
+    if (!invitation) {
+      throw new AppError('Invitation not found or already responded to', 404);
+    }
+
+    invitation.status = 'declined';
+    invitation.responded_at = new Date();
+    invitation.invitee_id = req.user.id;
+    await invitation.save();
+
+    res.json({
+      success: true,
+      message: 'Invitation declined'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Search users
+export const searchUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string' || q.trim().length < 2) {
+      throw new AppError('Search query must be at least 2 characters', 400);
+    }
+
+    const searchTerm = q.trim();
+
+    const users = await User.findAll({
+      where: {
+        [Op.or]: [
+          { email: { [Op.iLike]: `%${searchTerm}%` } },
+          { username: { [Op.iLike]: `%${searchTerm}%` } }
+        ],
+        id: { [Op.ne]: req.user.id }, // Exclude current user
+        is_active: true
+      },
+      attributes: ['id', 'email', 'username', 'role'],
+      limit: 20,
+      order: [['username', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      data: users
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get team's shared connections
+export const getTeamConnections = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+
+    // Check if user is a member of the team
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: You are not a member of this team', 403);
+    }
+
+    // Get all connections shared with this team
+    const sharedConnections = await TeamConnection.findAll({
+      where: { team_id: teamId },
+      attributes: ['connection_id']
+    });
+
+    const connectionIds = sharedConnections.map(sc => sc.connection_id);
+    
+    const connections = connectionIds.length > 0 
+      ? await Connection.findAll({
+          where: { id: { [Op.in]: connectionIds } },
+          attributes: ['id', 'name', 'type', 'environment', 'created_by']
+        })
+      : [];
+
+    res.json({
+      success: true,
+      data: connections
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get team's shared queries
+export const getTeamQueries = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.id);
+
+    // Check if user is a member of the team
+    const membership = await TeamMember.findOne({
+      where: {
+        team_id: teamId,
+        user_id: req.user.id
+      }
+    });
+
+    if (!membership) {
+      throw new AppError('Access denied: You are not a member of this team', 403);
+    }
+
+    // Get all queries shared with this team
+    const sharedQueries = await TeamQuery.findAll({
+      where: { team_id: teamId },
+      attributes: ['query_id']
+    });
+
+    const queryIds = sharedQueries.map(sq => sq.query_id);
+    
+    const queries = queryIds.length > 0
+      ? await Query.findAll({
+          where: { id: { [Op.in]: queryIds } },
+          attributes: ['id', 'name', 'description', 'is_public', 'created_by']
+        })
+      : [];
+
+    res.json({
+      success: true,
+      data: queries
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

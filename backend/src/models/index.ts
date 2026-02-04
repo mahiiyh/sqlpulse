@@ -5,6 +5,11 @@ import Schedule from './Schedule';
 import ExecutionHistory from './ExecutionHistory';
 import ScheduleDependency from './ScheduleDependency';
 import QueryTemplate from './QueryTemplate';
+import Team from './Team';
+import TeamMember from './TeamMember';
+import TeamConnection from './TeamConnection';
+import TeamQuery from './TeamQuery';
+import TeamInvitation from './TeamInvitation';
 
 // Define associations
 User.hasMany(Connection, { foreignKey: 'created_by', as: 'connections' });
@@ -43,6 +48,44 @@ ScheduleDependency.belongsTo(Schedule, { foreignKey: 'depends_on_schedule_id', a
 User.hasMany(ExecutionHistory, { foreignKey: 'executed_by', as: 'executedQueries' });
 ExecutionHistory.belongsTo(User, { foreignKey: 'executed_by', as: 'executor' });
 
+// Team associations
+User.hasMany(Team, { foreignKey: 'created_by', as: 'createdTeams' });
+Team.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+Team.hasMany(TeamMember, { foreignKey: 'team_id', as: 'members' });
+TeamMember.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
+
+User.hasMany(TeamMember, { foreignKey: 'user_id', as: 'teamMemberships' });
+TeamMember.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+Team.hasMany(TeamConnection, { foreignKey: 'team_id', as: 'sharedConnections' });
+TeamConnection.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
+
+Connection.hasMany(TeamConnection, { foreignKey: 'connection_id', as: 'teamShares' });
+TeamConnection.belongsTo(Connection, { foreignKey: 'connection_id', as: 'connection' });
+
+User.hasMany(TeamConnection, { foreignKey: 'shared_by', as: 'sharedConnections' });
+TeamConnection.belongsTo(User, { foreignKey: 'shared_by', as: 'sharedBy' });
+
+Team.hasMany(TeamQuery, { foreignKey: 'team_id', as: 'sharedQueries' });
+TeamQuery.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
+
+Query.hasMany(TeamQuery, { foreignKey: 'query_id', as: 'teamShares' });
+TeamQuery.belongsTo(Query, { foreignKey: 'query_id', as: 'query' });
+
+User.hasMany(TeamQuery, { foreignKey: 'shared_by', as: 'sharedQueries' });
+TeamQuery.belongsTo(User, { foreignKey: 'shared_by', as: 'sharedBy' });
+
+// Team invitation associations
+Team.hasMany(TeamInvitation, { foreignKey: 'team_id', as: 'invitations' });
+TeamInvitation.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
+
+User.hasMany(TeamInvitation, { foreignKey: 'inviter_id', as: 'sentInvitations' });
+TeamInvitation.belongsTo(User, { foreignKey: 'inviter_id', as: 'inviter' });
+
+User.hasMany(TeamInvitation, { foreignKey: 'invitee_id', as: 'receivedInvitations' });
+TeamInvitation.belongsTo(User, { foreignKey: 'invitee_id', as: 'invitee' });
+
 export {
   User,
   Connection,
@@ -50,5 +93,10 @@ export {
   Schedule,
   ExecutionHistory,
   ScheduleDependency,
-  QueryTemplate
+  QueryTemplate,
+  Team,
+  TeamMember,
+  TeamConnection,
+  TeamQuery,
+  TeamInvitation
 };

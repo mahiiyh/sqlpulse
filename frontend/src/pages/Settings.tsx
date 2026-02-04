@@ -26,23 +26,22 @@ const Settings: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      // Load SMTP settings from environment or API if available
-      const smtpFromEnv = {
-        host: process.env.SMTP_HOST || '',
-        port: process.env.SMTP_PORT || '587',
-        secure: process.env.SMTP_SECURE === 'true',
-        user: process.env.SMTP_USER || '',
+      // Settings are stored server-side for security
+      // For now, use default empty values
+      // Future: Add API endpoint to fetch settings if needed
+      setSmtpConfig({
+        host: '',
+        port: '587',
+        secure: true,
+        user: '',
         password: '',
-        from: process.env.SMTP_FROM || '',
-      };
-      setSmtpConfig(smtpFromEnv);
+        from: '',
+      });
 
-      // Load Slack settings
-      const slackFromEnv = {
-        webhookUrl: process.env.SLACK_WEBHOOK_URL || '',
-        channel: process.env.SLACK_CHANNEL || '#general',
-      };
-      setSlackConfig(slackFromEnv);
+      setSlackConfig({
+        webhookUrl: '',
+        channel: '#general',
+      });
     } catch (error) {
       console.error('Failed to load settings:', error);
     }

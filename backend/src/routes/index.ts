@@ -10,6 +10,7 @@ import queueRoutes from './queue.routes';
 import queryVersionRoutes from './queryVersion.routes';
 import queryTemplateRoutes from './queryTemplate.routes';
 import adminRoutes from './admin.routes';
+import teamRoutes from './team.routes';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.use('/schedules', scheduleRoutes);
 router.use('/executions', executionRoutes);
 router.use('/history', historyRoutes);
 router.use('/queue', queueRoutes);
+router.use('/teams', teamRoutes);
 router.use('/admin', adminRoutes);
 router.use(dependencyRoutes);
 

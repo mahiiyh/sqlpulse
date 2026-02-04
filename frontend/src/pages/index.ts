@@ -8,3 +8,6 @@ export { default as ExecutionHistory } from './ExecutionHistory';
 export { default as Settings } from './Settings';
 export { default as Login } from './Login';
 export { default as AdminUsers } from './AdminUsers';
+export { default as Teams } from './Teams';
+export { default as TeamDetails } from './TeamDetails';
+export { default as Invitations } from './Invitations';
