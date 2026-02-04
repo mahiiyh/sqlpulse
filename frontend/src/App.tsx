@@ -3,6 +3,7 @@ import { useAuthStore } from './stores/authStore';
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import QueryLibrary from './pages/QueryLibrary';
 import QueryEditor from './pages/QueryEditor';
@@ -28,6 +29,7 @@ function App() {
       {/* Public landing page */}
       <Route path="/" element={!isAuthenticated ? <LandingPage /> : <Navigate to="/dashboard" />} />
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
+      <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
       
       {/* Public guide pages */}
       <Route path="/getting-started" element={<GettingStarted />} />
