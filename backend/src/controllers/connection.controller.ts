@@ -5,10 +5,18 @@ import { AuthRequest } from '../middleware/auth';
 import { encrypt } from '../utils/encryption';
 import { QueryExecutor } from '../services/queryExecutor';
 
-export const getConnections = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+export const getConnections = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    // Admin can see all connections with ?showAll=true
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    
+    const whereClause: any = { is_active: true };
+    if (!showAll) {
+      whereClause.created_by = req.user.id;
+    }
+
     const connections = await Connection.findAll({
-      where: { is_active: true },
+      where: whereClause,
       attributes: { exclude: ['encrypted_password'] }
     });
 
@@ -29,6 +37,11 @@ export const getConnection = async (req: AuthRequest, res: Response, next: NextF
 
     if (!connection) {
       throw new AppError('Connection not found', 404);
+    }
+
+    // Check if user owns this connection or is admin
+    if (connection.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this connection', 403);
     }
 
     res.json({
@@ -79,6 +92,11 @@ export const updateConnection = async (req: AuthRequest, res: Response, next: Ne
       throw new AppError('Connection not found', 404);
     }
 
+    // Check if user owns this connection or is admin
+    if (connection.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this connection', 403);
+    }
+
     const { name, type, host, port, database_name, username, password, environment } = req.body;
     const updateData: any = { name, type, host, port, database_name, username, environment };
 
@@ -108,6 +126,11 @@ export const deleteConnection = async (req: AuthRequest, res: Response, next: Ne
       throw new AppError('Connection not found', 404);
     }
 
+    // Check if user owns this connection or is admin
+    if (connection.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this connection', 403);
+    }
+
     await connection.update({ is_active: false });
 
     res.json({
@@ -125,6 +148,11 @@ export const testConnection = async (req: AuthRequest, res: Response, next: Next
 
     if (!connection) {
       throw new AppError('Connection not found', 404);
+    }
+
+    // Check if user owns this connection or is admin
+    if (connection.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this connection', 403);
     }
 
     // Test connection by executing a simple query

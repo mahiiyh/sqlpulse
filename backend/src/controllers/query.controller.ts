@@ -13,6 +13,7 @@ import { QueryParameterProcessor } from '../utils/queryParameters';
 export const getQueries = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { category, database_type, search, is_public } = req.query;
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
     const where: any = {};
 
     if (category) where.category = category;
@@ -25,8 +26,8 @@ export const getQueries = async (req: AuthRequest, res: Response, next: NextFunc
       ];
     }
 
-    // Show user's queries or public queries
-    if (!where.is_public) {
+    // Show user's own queries + public queries, or all if admin with showAll=true
+    if (!showAll) {
       where[Op.or] = [
         { created_by: req.user.id },
         { is_public: true }

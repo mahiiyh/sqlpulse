@@ -6,10 +6,16 @@ import User from '../models/User';
 
 export const getAllTemplates = async (req: AuthRequest, res: Response) => {
   const { category, search } = req.query;
+  const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
 
   const where: any = {};
   if (category) {
     where.category = category;
+  }
+  
+  // Show only user's own templates unless admin with showAll=true
+  if (!showAll) {
+    where.created_by = req.user.id;
   }
 
   const templates = await QueryTemplate.findAll({
@@ -56,6 +62,11 @@ export const getTemplate = async (req: AuthRequest, res: Response) => {
 
   if (!template) {
     throw new AppError('Template not found', 404);
+  }
+
+  // Check if user owns this template or is admin
+  if (template.created_by !== req.user.id && req.user.role !== 'admin') {
+    throw new AppError('Access denied: You do not own this template', 403);
   }
 
   res.json({

@@ -6,10 +6,16 @@ import { AuthRequest } from '../middleware/auth';
 export const getExecutionHistory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { limit = 100, offset = 0, status, query_id } = req.query;
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
     const where: any = {};
 
     if (status) where.status = status;
     if (query_id) where.query_id = query_id;
+    
+    // Show only user's own executions unless admin with showAll=true
+    if (!showAll) {
+      where.executed_by = req.user.id;
+    }
 
     const executions = await ExecutionHistory.findAll({
       where,
@@ -33,6 +39,11 @@ export const getExecutionById = async (req: AuthRequest, res: Response, next: Ne
 
     if (!execution) {
       throw new AppError('Execution not found', 404);
+    }
+
+    // Check if user owns this execution or is admin
+    if (execution.executed_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this execution', 403);
     }
 
     res.json({

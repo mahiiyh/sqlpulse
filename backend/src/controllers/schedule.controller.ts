@@ -10,9 +10,18 @@ import { AuthRequest } from '../middleware/auth';
 import { calculateNextRun } from '../utils/cronUtils';
 import { queueService } from '../services/queueService';
 
-export const getSchedules = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+export const getSchedules = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    // Admin can see all schedules with ?showAll=true
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    
+    const whereClause: any = {};
+    if (!showAll) {
+      whereClause.created_by = req.user.id;
+    }
+
     const schedules = await Schedule.findAll({
+      where: whereClause,
       order: [['next_run_time', 'ASC']],
       include: [
         {
@@ -58,6 +67,11 @@ export const getSchedule = async (req: AuthRequest, res: Response, next: NextFun
       throw new AppError('Schedule not found', 404);
     }
 
+    // Check if user owns this schedule or is admin
+    if (schedule.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this schedule', 403);
+    }
+
     res.json({
       success: true,
       data: schedule
@@ -98,6 +112,11 @@ export const updateSchedule = async (req: AuthRequest, res: Response, next: Next
       throw new AppError('Schedule not found', 404);
     }
 
+    // Check if user owns this schedule or is admin
+    if (schedule.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this schedule', 403);
+    }
+
     // Recalculate next run time if cron expression is updated
     const updateData: any = { ...req.body };
     if (req.body.cron_expression && req.body.cron_expression !== schedule.cron_expression) {
@@ -121,6 +140,11 @@ export const deleteSchedule = async (req: AuthRequest, res: Response, next: Next
 
     if (!schedule) {
       throw new AppError('Schedule not found', 404);
+    }
+
+    // Check if user owns this schedule or is admin
+    if (schedule.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this schedule', 403);
     }
 
     // Delete associated execution history first to avoid foreign key constraint
@@ -160,6 +184,11 @@ export const enableSchedule = async (req: AuthRequest, res: Response, next: Next
       throw new AppError('Schedule not found', 404);
     }
 
+    // Check if user owns this schedule or is admin
+    if (schedule.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this schedule', 403);
+    }
+
     await schedule.update({ is_enabled: true });
 
     res.json({
@@ -179,6 +208,11 @@ export const disableSchedule = async (req: AuthRequest, res: Response, next: Nex
       throw new AppError('Schedule not found', 404);
     }
 
+    // Check if user owns this schedule or is admin
+    if (schedule.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this schedule', 403);
+    }
+
     await schedule.update({ is_enabled: false });
 
     res.json({
@@ -196,6 +230,11 @@ export const runScheduleNow = async (req: AuthRequest, res: Response, next: Next
 
     if (!schedule) {
       throw new AppError('Schedule not found', 404);
+    }
+
+    // Check if user owns this schedule or is admin
+    if (schedule.created_by !== req.user.id && req.user.role !== 'admin') {
+      throw new AppError('Access denied: You do not own this schedule', 403);
     }
 
     if (!schedule.is_enabled) {
@@ -270,10 +309,17 @@ export const getScheduleHistory = async (req: AuthRequest, res: Response, next: 
   }
 };
 
-export const getUpcomingSchedules = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+export const getUpcomingSchedules = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    const whereClause: any = { is_enabled: true };
+    
+    if (!showAll) {
+      whereClause.created_by = req.user.id;
+    }
+
     const schedules = await Schedule.findAll({
-      where: { is_enabled: true },
+      where: whereClause,
       order: [['next_run_time', 'ASC']],
       limit: 20
     });
