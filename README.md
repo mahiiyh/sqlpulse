@@ -105,9 +105,10 @@ Trigger notifications on:
   - Admin: Full system access
   - Developer: Query creation and scheduling
   - Analyst: Query execution only
-  - Scheduler: Schedule management
-  - Read-Only: View-only access
+  - Read-Only: View-only access (default for new users)
+  - See [USER_ACCESS.md](USER_ACCESS.md) for detailed role permissions
 - **AES-256 encrypted credential storage** for all database connections
+- **New users default to Read-Only** for security (contact admin for upgrade)
 - **Complete audit trail** for all operations and data access
 - **Production database protection** with read-only mode enforcement
 - **Query approval workflow** for destructive operations (UPDATE/DELETE/DROP)
@@ -285,6 +286,7 @@ GET    /api/schedules/upcoming
 
 - 🏗️ [Architecture & Project Structure](ARCHITECTURE.md) - System design and folder structure
 - 🔒 [Security Policy](SECURITY.md) - Security best practices and reporting
+- 👥 [User Access & Roles](USER_ACCESS.md) - Role permissions and upgrade requests
 - 🤝 [Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
 - 📝 [Changelog](CHANGELOG.md) - Version history and updates
 

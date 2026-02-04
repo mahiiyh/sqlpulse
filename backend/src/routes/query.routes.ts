@@ -21,7 +21,7 @@ router.get('/:id', getQuery);
 router.post('/', authorize('admin', 'developer', 'analyst'), createQuery);
 router.put('/:id', authorize('admin', 'developer', 'analyst'), updateQuery);
 router.delete('/:id', authorize('admin', 'developer'), deleteQuery);
-router.post('/:id/execute', executeQuery);
-router.post('/:id/export', exportQueryResults);
+router.post('/:id/execute', authorize('admin', 'developer', 'analyst'), executeQuery);
+router.post('/:id/export', authorize('admin', 'developer', 'analyst'), exportQueryResults);
 
 export default router;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logger } from '../utils/logger';
+import WelcomeModal from '../components/WelcomeModal';
 import {
   LineChart,
   Line,
@@ -146,6 +147,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <WelcomeModal />
       {loading ? (
         <Loader size="lg" text="Loading dashboard data..." fullScreen />
       ) : (

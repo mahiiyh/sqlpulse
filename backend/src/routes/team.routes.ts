@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth';
 import {
   getTeams,
   getTeam,
@@ -37,27 +37,27 @@ router.post('/invitations/:invitationId/decline', declineInvitation);
 
 // Team CRUD
 router.get('/', getTeams);
-router.post('/', createTeam);
+router.post('/', authorize('admin', 'developer'), createTeam);
 router.get('/:id', getTeam);
-router.put('/:id', updateTeam);
-router.delete('/:id', deleteTeam);
+router.put('/:id', authorize('admin', 'developer'), updateTeam);
+router.delete('/:id', authorize('admin'), deleteTeam);
 
 // Team invitations for specific team
-router.post('/:id/invite', sendInvitation);
+router.post('/:id/invite', authorize('admin', 'developer'), sendInvitation);
 
 // Member management
-router.post('/:id/members', addMember);
-router.put('/:id/members/:memberId', updateMemberRole);
-router.delete('/:id/members/:memberId', removeMember);
+router.post('/:id/members', authorize('admin', 'developer'), addMember);
+router.put('/:id/members/:memberId', authorize('admin', 'developer'), updateMemberRole);
+router.delete('/:id/members/:memberId', authorize('admin', 'developer'), removeMember);
 
 // Get team resources
 router.get('/:id/connections', getTeamConnections);
 router.get('/:id/queries', getTeamQueries);
 
 // Resource sharing
-router.post('/:id/connections', shareConnection);
-router.delete('/:id/connections/:connectionId', unshareConnection);
-router.post('/:id/queries', shareQuery);
-router.delete('/:id/queries/:queryId', unshareQuery);
+router.post('/:id/connections', authorize('admin', 'developer'), shareConnection);
+router.delete('/:id/connections/:connectionId', authorize('admin', 'developer'), unshareConnection);
+router.post('/:id/queries', authorize('admin', 'developer', 'analyst'), shareQuery);
+router.delete('/:id/queries/:queryId', authorize('admin', 'developer', 'analyst'), unshareQuery);
 
 export default router;
