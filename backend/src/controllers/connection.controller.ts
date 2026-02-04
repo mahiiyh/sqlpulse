@@ -10,6 +10,10 @@ export const getConnections = async (req: AuthRequest, res: Response, next: Next
     // Admin can see all connections with ?showAll=true
     const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
     
+    // TODO: Future feature - Team/Group Sharing
+    // Add support for: is_shared_with_team, shared_groups[], team_permissions
+    // Allow users to share connections with specific groups/teams they belong to
+    
     const whereClause: any = { is_active: true };
     if (!showAll) {
       whereClause.created_by = req.user.id;
