@@ -8,6 +8,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Request interceptor to add auth token
@@ -28,7 +29,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only logout on 401 for auth endpoints, not for optional features like queue stats
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       const url = error.config?.url || '';
       // Don't logout for optional endpoints that may not have full permissions
@@ -40,6 +41,15 @@ apiClient.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    
+    // Handle 403 Forbidden - add user-friendly message
+    if (error.response?.status === 403) {
+      const originalMessage = error.response?.data?.message || 'Access denied';
+      error.userMessage = originalMessage.includes('do not own') 
+        ? 'You do not have permission to access this resource. It may belong to another user.'
+        : originalMessage;
+    }
+    
     return Promise.reject(error);
   }
 );

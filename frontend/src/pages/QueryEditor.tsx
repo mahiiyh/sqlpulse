@@ -205,7 +205,7 @@ export default function QueryEditor() {
               required
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="reporting">Reporting</option>
               <option value="analytics">Analytics</option>
@@ -224,7 +224,7 @@ export default function QueryEditor() {
               required
               value={formData.database_type}
               onChange={(e) => setFormData({ ...formData, database_type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="postgresql">PostgreSQL</option>
               <option value="mysql">MySQL</option>
@@ -241,7 +241,7 @@ export default function QueryEditor() {
             type="text"
             value={formData.project_name}
             onChange={(e) => setFormData({ ...formData, project_name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -249,7 +249,7 @@ export default function QueryEditor() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             SQL Content *
           </label>
-          <div className="border border-gray-300 rounded-lg overflow-hidden">
+          <div className="border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white overflow-hidden">
             <Editor
               height="400px"
               language="sql"
@@ -280,7 +280,7 @@ export default function QueryEditor() {
               onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Public (visible to all users)</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Public (visible to all users)</span>
           </label>
 
           <label className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export default function QueryEditor() {
               onChange={(e) => setFormData({ ...formData, is_dangerous: e.target.checked })}
               className="rounded border-gray-300 text-red-600 focus:ring-red-500"
             />
-            <span className="text-sm text-gray-700">Dangerous (requires extra confirmation)</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Dangerous (requires extra confirmation)</span>
           </label>
 
           <label className="flex items-center gap-2">
@@ -300,7 +300,7 @@ export default function QueryEditor() {
               onChange={(e) => setFormData({ ...formData, is_schedulable: e.target.checked })}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Schedulable</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Schedulable</span>
           </label>
         </div>
 
@@ -315,7 +315,7 @@ export default function QueryEditor() {
                 <select
                   value={selectedConnectionId || ''}
                   onChange={(e) => setSelectedConnectionId(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {connections.map((conn) => (
                     <option key={conn.id} value={conn.id}>
@@ -401,7 +401,7 @@ export default function QueryEditor() {
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-700/50">
                     <tr>
                       {Object.keys(executionResult.rows[0]).map((column) => (
                         <th
@@ -415,7 +415,7 @@ export default function QueryEditor() {
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {paginatedRows.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
+                      <tr key={idx} className="hover:bg-gray-50 dark:bg-gray-700/50">
                         {Object.values(row).map((value: any, cellIdx) => (
                           <td
                             key={cellIdx}
@@ -439,14 +439,14 @@ export default function QueryEditor() {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="border-t border-gray-200 p-4 flex items-center justify-between">
-                  <div className="text-sm text-gray-700">
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
                     Showing {startIndex + 1} to {Math.min(endIndex, executionResult.rows.length)} of {executionResult.rows.length} results
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 dark:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
@@ -456,7 +456,7 @@ export default function QueryEditor() {
                     <button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 dark:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>

@@ -17,6 +17,8 @@ interface UserAttributes {
   role: UserRole;
   timezone: string;
   is_active: boolean;
+  failed_login_attempts?: number;
+  locked_until?: Date | null;
   last_login_at?: Date;
   created_at?: Date;
   updated_at?: Date;
@@ -32,6 +34,8 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   public role!: UserRole;
   public timezone!: string;
   public is_active!: boolean;
+  public failed_login_attempts?: number;
+  public locked_until?: Date | null;
   public last_login_at?: Date;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;

@@ -7,7 +7,7 @@ import { queueService } from '../services/queueService';
 const router = Router();
 
 // Get queue statistics
-router.get('/stats', authenticate, authorize('admin', 'developer'), async (_req: AuthRequest, res: Response, next: NextFunction) => {
+router.get('/stats', authenticate, authorize('admin', 'developer'), async (_req: AuthRequest, res: Response, _next: NextFunction) => {
   try {
     const stats = await queueService.getQueueStats();
     res.json({
@@ -15,15 +15,33 @@ router.get('/stats', authenticate, authorize('admin', 'developer'), async (_req:
       data: stats
     });
   } catch (error) {
-    next(error);
+    // Return empty stats if queue service is unavailable (e.g., Redis down)
+    res.json({
+      success: true,
+      data: {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+        delayed: 0,
+        total: 0
+      }
+    });
   }
 });
 
 // Get active jobs
-router.get('/active', authenticate, authorize('admin', 'developer'), async (_req: AuthRequest, res: Response, next: NextFunction) => {
+router.get('/active', authenticate, authorize('admin', 'developer'), async (req: AuthRequest, res: Response, _next: NextFunction) => {
   try {
     const jobs = await queueService.getActiveJobs();
-    const jobsData = jobs.map(job => ({
+    
+    // Filter jobs by user unless admin with showAll=true
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    const filteredJobs = showAll 
+      ? jobs 
+      : jobs.filter(job => job.data?.triggeredBy === req.user.id || job.data?.userId === req.user.id);
+    
+    const jobsData = filteredJobs.map(job => ({
       id: job.id,
       data: job.data,
       progress: job.progress(),
@@ -36,7 +54,11 @@ router.get('/active', authenticate, authorize('admin', 'developer'), async (_req
       data: jobsData
     });
   } catch (error) {
-    next(error);
+    // Return empty array if queue service is unavailable
+    res.json({
+      success: true,
+      data: []
+    });
   }
 });
 
@@ -47,7 +69,14 @@ router.get('/failed', authenticate, authorize('admin', 'developer'), async (req:
     const end = parseInt(req.query.end as string, 10) || 10;
     
     const jobs = await queueService.getFailedJobs(start, end);
-    const jobsData = jobs.map(job => ({
+    
+    // Filter jobs by user unless admin with showAll=true
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
+    const filteredJobs = showAll 
+      ? jobs 
+      : jobs.filter(job => job.data?.triggeredBy === req.user.id || job.data?.userId === req.user.id);
+    
+    const jobsData = filteredJobs.map(job => ({
       id: job.id,
       data: job.data,
       failedReason: job.failedReason,

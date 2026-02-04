@@ -59,6 +59,7 @@ interface ScheduleData {
   max_retries: number;
   retry_delay_seconds: number;
   exponential_backoff: boolean;
+  created_by: number;
 }
 
 export class QueryExecutor {
@@ -75,13 +76,15 @@ export class QueryExecutor {
 
   async execute(jobData: JobData, attemptsMade: number = 0) {
     const startTime = Date.now();
-    const executionId = await this.createExecutionRecord(jobData, attemptsMade);
-
+    
     try {
       // Fetch query, connection and schedule details
       const query = await this.getQuery(jobData.queryId);
       const connection = await this.getConnection(jobData.connectionId);
       const schedule = await this.getSchedule(jobData.scheduleId);
+      
+      // Create execution record with schedule owner
+      const executionId = await this.createExecutionRecord(jobData, schedule.created_by, attemptsMade);
 
       logger.info(`Executing query "${query.name}" on ${connection.type} database`);
 
@@ -192,7 +195,7 @@ export class QueryExecutor {
 
   private async getSchedule(scheduleId: number): Promise<ScheduleData> {
     const [results] = await appSequelize.query<ScheduleData>(
-      'SELECT schedule_name, notification_enabled, notification_channel, notification_config, max_retries, retry_delay_seconds, exponential_backoff FROM schedules WHERE id = :scheduleId',
+      'SELECT schedule_name, notification_enabled, notification_channel, notification_config, max_retries, retry_delay_seconds, exponential_backoff, created_by FROM schedules WHERE id = :scheduleId',
       { replacements: { scheduleId }, type: QueryTypes.SELECT }
     );
     
@@ -248,16 +251,17 @@ export class QueryExecutor {
     }
   }
 
-  private async createExecutionRecord(jobData: JobData, attemptsMade: number = 0): Promise<number> {
+  private async createExecutionRecord(jobData: JobData, executedBy: number, attemptsMade: number = 0): Promise<number> {
     const [result] = await appSequelize.query(`
-      INSERT INTO execution_history (query_id, schedule_id, connection_id, execution_type, executed_at, status, retry_attempt)
-      VALUES (:queryId, :scheduleId, :connectionId, 'scheduled', NOW(), 'running', :retryAttempt)
+      INSERT INTO execution_history (query_id, schedule_id, connection_id, execution_type, executed_by, executed_at, status, retry_attempt)
+      VALUES (:queryId, :scheduleId, :connectionId, 'scheduled', :executedBy, NOW(), 'running', :retryAttempt)
       RETURNING id
     `, {
       replacements: {
         queryId: jobData.queryId,
         scheduleId: jobData.scheduleId,
         connectionId: jobData.connectionId,
+        executedBy: executedBy,
         retryAttempt: attemptsMade
       }
     });

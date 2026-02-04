@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../lib/api';
+import ShareWithTeamModal from '../components/ShareWithTeamModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useToast } from '../hooks/useToast';
 
 interface Connection {
   id: number;
@@ -11,13 +14,21 @@ interface Connection {
   username: string;
   environment: string;
   is_active: boolean;
+  created_by?: number;
 }
 
 export default function Connections() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<string>('all');  const [formData, setFormData] = useState({
+  const [filterType, setFilterType] = useState<string>('all');
+  const [shareModal, setShareModal] = useState<{ isOpen: boolean; connectionId?: number; connectionName?: string }>({
+    isOpen: false,
+  });
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; connection?: Connection }>({ isOpen: false });
+  const toast = useToast();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
     name: '',
     type: 'postgresql',
     host: '',
@@ -30,7 +41,17 @@ export default function Connections() {
 
   useEffect(() => {
     fetchConnections();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await apiClient.get('/auth/me');
+      setCurrentUserId(response.data.data.id);
+    } catch (error) {
+      console.error('Failed to fetch current user:', error);
+    }
+  };
 
   const fetchConnections = async () => {
     try {
@@ -59,20 +80,35 @@ export default function Connections() {
         password: '',
         environment: 'dev',
       });
+      toast.success('Connection created successfully!');
       fetchConnections();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create connection:', error);
-      alert('Failed to create connection');
+      toast.error(error.response?.data?.message || 'Failed to create connection');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this connection?')) return;
+  const handleDeleteClick = (connection: Connection) => {
+    setConfirmDelete({ isOpen: true, connection });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const connection = confirmDelete.connection;
+    if (!connection) return;
+
     try {
-      await apiClient.delete(`/connections/${id}`);
+      await apiClient.delete(`/connections/${connection.id}`);
+      toast.success(`Connection "${connection.name}" deleted successfully!`);
       fetchConnections();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete connection:', error);
+      if (error.response?.status === 403) {
+        toast.error('You can only delete connections you created');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to delete connection');
+      }
+    } finally {
+      setConfirmDelete({ isOpen: false });
     }
   };
 
@@ -277,17 +313,17 @@ export default function Connections() {
                 <span
                   className={`px-2 py-1 text-xs rounded ${
                     conn.environment === 'production'
-                      ? 'bg-red-100 text-red-800'
+                      ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                       : conn.environment === 'uat'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                      : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                   }`}
                 >
                   {conn.environment}
                 </span>
               </div>
 
-              <div className="space-y-1 text-sm text-gray-600 mb-4">
+              <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400 mb-4">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
@@ -306,12 +342,31 @@ export default function Connections() {
                   </svg>
                   {conn.username}
                 </div>
+                {conn.created_by && conn.created_by !== currentUserId && (
+                  <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400 mt-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Shared with you
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
+                {currentUserId === conn.created_by && (
+                  <button
+                    onClick={() => setShareModal({ isOpen: true, connectionId: conn.id, connectionName: conn.name })}
+                    className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                    title="Share with team"
+                  >
+                    Share
+                  </button>
+                )}
                 <button
-                  onClick={() => handleDelete(conn.id)}
-                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  onClick={() => handleDeleteClick(conn)}
+                  disabled={currentUserId !== conn.created_by}
+                  className="px-3 py-1 text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title={currentUserId !== conn.created_by ? 'You can only delete connections you created' : 'Delete connection'}
                 >
                   Delete
                 </button>
@@ -320,6 +375,37 @@ export default function Connections() {
           ))}
         </div>
       )}
+
+      {/* Share Modal */}
+      {shareModal.connectionId && (
+        <ShareWithTeamModal
+          isOpen={shareModal.isOpen}
+          onClose={() => setShareModal({ isOpen: false })}
+          resourceType="connection"
+          resourceId={shareModal.connectionId}
+          resourceName={shareModal.connectionName || 'Connection'}
+          onSuccess={() => {
+            toast.success('Connection shared successfully!');
+            fetchConnections();
+          }}
+          onError={(message) => toast.error(message)}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        title="Delete Connection"
+        message={`Are you sure you want to delete "${confirmDelete.connection?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDelete({ isOpen: false })}
+      />
+
+      {/* Toast Container */}
+      <toast.ToastContainer />
     </div>
   );
 }

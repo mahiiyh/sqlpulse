@@ -3,6 +3,7 @@ import { Query } from '../models/Query';
 import { Connection } from '../models/Connection';
 import { ExecutionHistory, ExecutionType, ExecutionStatus } from '../models/ExecutionHistory';
 import { QueryVersion } from '../models/QueryVersion';
+import { TeamQuery, TeamMember } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { Op } from 'sequelize';
@@ -13,6 +14,7 @@ import { QueryParameterProcessor } from '../utils/queryParameters';
 export const getQueries = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { category, database_type, search, is_public } = req.query;
+    const showAll = req.query.showAll === 'true' && req.user.role === 'admin';
     const where: any = {};
 
     if (category) where.category = category;
@@ -25,11 +27,27 @@ export const getQueries = async (req: AuthRequest, res: Response, next: NextFunc
       ];
     }
 
-    // Show user's queries or public queries
-    if (!where.is_public) {
+    // Show user's own queries + public queries + team-shared queries, or all if admin with showAll=true
+    if (!showAll) {
+      // Get user's teams
+      const userTeamMemberships = await TeamMember.findAll({
+        where: { user_id: req.user.id },
+        attributes: ['team_id']
+      });
+      const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
+
+      // Get queries shared with user's teams
+      const sharedQueryIds = userTeamIds.length > 0 
+        ? await TeamQuery.findAll({
+            where: { team_id: { [Op.in]: userTeamIds } },
+            attributes: ['query_id']
+          }).then(tqs => tqs.map(tq => tq.query_id))
+        : [];
+
       where[Op.or] = [
         { created_by: req.user.id },
-        { is_public: true }
+        { is_public: true },
+        { id: { [Op.in]: sharedQueryIds } }
       ];
     }
 
@@ -63,7 +81,7 @@ export const getQueries = async (req: AuthRequest, res: Response, next: NextFunc
   }
 };
 
-export const getQuery = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getQuery = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const query = await Query.findByPk(req.params.id);
 
@@ -71,15 +89,34 @@ export const getQuery = async (req: AuthRequest, res: Response, next: NextFuncti
       throw new AppError('Query not found', 404);
     }
 
-    // Check access permission
-    if (!query.is_public && query.created_by !== req.user.id) {
-      throw new AppError('Access denied', 403);
+    // Check access permission: own query, public, or shared with user's team
+    if (query.created_by === req.user.id || query.is_public) {
+      res.json({ success: true, data: query });
+      return;
     }
 
-    res.json({
-      success: true,
-      data: query
+    // Check if query is shared with any of user's teams
+    const userTeamMemberships = await TeamMember.findAll({
+      where: { user_id: req.user.id },
+      attributes: ['team_id']
     });
+    const userTeamIds = userTeamMemberships.map(tm => tm.team_id);
+
+    if (userTeamIds.length > 0) {
+      const teamShare = await TeamQuery.findOne({
+        where: {
+          query_id: query.id,
+          team_id: { [Op.in]: userTeamIds }
+        }
+      });
+
+      if (teamShare) {
+        res.json({ success: true, data: query });
+        return;
+      }
+    }
+
+    throw new AppError('Access denied', 403);
   } catch (error) {
     next(error);
   }
@@ -146,7 +183,6 @@ export const updateQuery = async (req: AuthRequest, res: Response, next: NextFun
     // Validate sql_content if provided
     if (req.body.sql_content !== undefined) {
       if (typeof req.body.sql_content !== 'string' || req.body.sql_content.trim().length === 0) {
-        await t.rollback();
         throw new AppError('sql_content must be a non-empty string', 400);
       }
     }
@@ -176,7 +212,11 @@ export const updateQuery = async (req: AuthRequest, res: Response, next: NextFun
       data: query
     });
   } catch (error) {
-    await t.rollback();
+    try {
+      await t.rollback();
+    } catch (rollbackError) {
+      // Transaction may already be finished
+    }
     next(error);
   }
 };

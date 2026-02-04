@@ -12,6 +12,9 @@ import Connections from './pages/Connections';
 import ExecutionHistory from './pages/ExecutionHistory';
 import AdminUsers from './pages/AdminUsers';
 import Settings from './pages/Settings';
+import Teams from './pages/Teams';
+import TeamDetails from './pages/TeamDetails';
+import Invitations from './pages/Invitations';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -32,6 +35,9 @@ function App() {
         <Route path="/schedules" element={<Schedules />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/history" element={<ExecutionHistory />} />
+        <Route path="/teams" element={<Teams />} />
+        <Route path="/teams/:id" element={<TeamDetails />} />
+        <Route path="/invitations" element={<Invitations />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/admin/users" element={<AdminUsers />} />
       </Route>

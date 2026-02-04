@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../lib/api';
+import ShareWithTeamModal from '../components/ShareWithTeamModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useToast } from '../hooks/useToast';
 
 interface Query {
   id: number;
@@ -12,16 +15,31 @@ interface Query {
   is_dangerous: boolean;
   execution_count: number;
   created_at: string;
+  created_by?: number;
 }
 
 export default function QueryLibrary() {
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [shareModal, setShareModal] = useState<{ isOpen: boolean; queryId?: number; queryName?: string }>({ isOpen: false });
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; query?: Query }>({ isOpen: false });
+  const toast = useToast();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchQueries();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await apiClient.get('/auth/me');
+      setCurrentUserId(response.data.data.id);
+    } catch (error) {
+      console.error('Failed to fetch current user:', error);
+    }
+  };
 
   const fetchQueries = async () => {
     try {
@@ -35,15 +53,27 @@ export default function QueryLibrary() {
     }
   };
 
-  const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+  const handleDeleteClick = (query: Query) => {
+    setConfirmDelete({ isOpen: true, query });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const query = confirmDelete.query;
+    if (!query) return;
     
     try {
-      await apiClient.delete(`/queries/${id}`);
-      setQueries(queries.filter(q => q.id !== id));
-    } catch (error) {
+      await apiClient.delete(`/queries/${query.id}`);
+      setQueries(queries.filter(q => q.id !== query.id));
+      toast.success(`Query "${query.name}" deleted successfully!`);
+    } catch (error: any) {
       console.error('Failed to delete query:', error);
-      alert('Failed to delete query');
+      if (error.response?.status === 403) {
+        toast.error('You can only delete queries you created');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to delete query');
+      }
+    } finally {
+      setConfirmDelete({ isOpen: false });
     }
   };
 
@@ -137,6 +167,11 @@ export default function QueryLibrary() {
                     Public
                   </span>
                 )}
+                {query.created_by && query.created_by !== currentUserId && (
+                  <span className="px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded">
+                    Shared
+                  </span>
+                )}
               </div>
 
               <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -150,15 +185,20 @@ export default function QueryLibrary() {
                 >
                   View
                 </Link>
-                <Link
-                  to={`/queries/${query.id}`}
-                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm text-center"
-                >
-                  Edit
-                </Link>
+                {currentUserId === query.created_by && (
+                  <button
+                    onClick={() => setShareModal({ isOpen: true, queryId: query.id, queryName: query.name })}
+                    className="px-3 py-2 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded hover:bg-cyan-200 dark:hover:bg-cyan-900/50 transition-colors text-sm"
+                    title="Share with team"
+                  >
+                    Share
+                  </button>
+                )}
                 <button
-                  onClick={() => handleDelete(query.id, query.name)}
-                  className="px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm"
+                  onClick={() => handleDeleteClick(query)}
+                  disabled={currentUserId !== query.created_by}
+                  className="px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={currentUserId !== query.created_by ? 'You can only delete queries you created' : 'Delete query'}
                 >
                   Delete
                 </button>
@@ -167,6 +207,37 @@ export default function QueryLibrary() {
           ))}
         </div>
       )}
+
+      {/* Share Modal */}
+      {shareModal.queryId && (
+        <ShareWithTeamModal
+          isOpen={shareModal.isOpen}
+          onClose={() => setShareModal({ isOpen: false })}
+          resourceType="query"
+          resourceId={shareModal.queryId}
+          resourceName={shareModal.queryName || 'Query'}
+          onSuccess={() => {
+            toast.success('Query shared successfully!');
+            fetchQueries();
+          }}
+          onError={(message) => toast.error(message)}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        title="Delete Query"
+        message={`Are you sure you want to delete "${confirmDelete.query?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDelete({ isOpen: false })}
+      />
+
+      {/* Toast Container */}
+      <toast.ToastContainer />
     </div>
   );
 }
