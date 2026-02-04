@@ -32,7 +32,7 @@ export const getAllTemplates = async (req: AuthRequest, res: Response) => {
   });
 
   // Convert to plain objects and add is_system flag
-  let allTemplates = userTemplates.map(t => ({
+  let allTemplates: any[] = userTemplates.map(t => ({
     ...t.toJSON(),
     is_system: false
   }));

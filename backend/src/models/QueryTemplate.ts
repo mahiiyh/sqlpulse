@@ -54,11 +54,11 @@ QueryTemplate.init(
       type: DataTypes.STRING(100),
       allowNull: false,
       defaultValue: 'General',
+    },
     database_type: {
       type: DataTypes.STRING(50),
       allowNull: true,
       comment: 'Database type: postgresql, mysql, sqlserver, etc.',
-    },
     },
     tags: {
       type: DataTypes.ARRAY(DataTypes.STRING),
