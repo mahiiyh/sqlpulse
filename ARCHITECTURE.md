@@ -76,10 +76,10 @@ sqlpulse/
 │   (or any static hosting)           │
 └──────────────┬──────────────────────┘
                │ HTTPS/REST API
-┌──────────────▼──────────────────────┐
-│   Backend API (Express + TypeScript)│
-│   Deployed on: Railway / Heroku     │
-│   / any Node.js hosting             │
+┌──────────────▼────────────────────── ┐
+│   Backend API (Express + TypeScript) │
+│   Deployed on: Railway / Heroku      │
+│   / any Node.js hosting              │
 └──────────┬──────────┬────────────────┘
            │          │
            ▼          ▼

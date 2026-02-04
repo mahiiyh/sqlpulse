@@ -121,14 +121,14 @@ Trigger notifications on:
 
 ```
 ┌─────────────────────────────────────┐
-│         Frontend (React)             │
+│         Frontend (React)            │
 │  - Dashboard, Query Editor, etc.    │
 └──────────────┬──────────────────────┘
                │ HTTP/REST API
 ┌──────────────▼──────────────────────┐
-│       Backend API (Express)          │
+│       Backend API (Express)         │
 │  - Authentication, CRUD, Execution  │
-└──────────┬──────────┬────────────────┘
+└──────────┬──────────┬───────────────┘
            │          │
            ▼          ▼
     ┌──────────┐  ┌──────────┐
