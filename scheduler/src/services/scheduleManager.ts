@@ -2,6 +2,7 @@ import { Queue } from 'bull';
 import { Sequelize, QueryTypes } from 'sequelize';
 import { logger } from '../utils/logger';
 import { DependencyChecker } from './dependencyChecker';
+import { calculateNextRun } from '../utils/cronUtils';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -61,7 +62,7 @@ export class ScheduleManager {
 
       // Query for due schedules
       const schedules = await this.sequelize.query<Schedule>(`
-        SELECT id, query_id, connection_id, schedule_name, next_run_time,
+        SELECT id, query_id, connection_id, schedule_name, cron_expression, next_run_time,
                max_retries, retry_delay_seconds, exponential_backoff
         FROM schedules
         WHERE is_enabled = true
@@ -119,16 +120,24 @@ export class ScheduleManager {
 
       logger.info(`Added schedule ${schedule.id} (${schedule.schedule_name}) to queue`);
 
-      // Update next run time (simplified - would need proper cron calculation)
-      await this.updateNextRunTime(schedule.id);
+      // Update next run time using cron expression
+      await this.updateNextRunTime(schedule.id, schedule.cron_expression);
     } catch (error) {
       logger.error(`Failed to add schedule ${schedule.id} to queue:`, error);
     }
   }
 
-  private async updateNextRunTime(scheduleId: number) {
-    // This is a simplified version - would need proper cron expression parsing
-    const nextRunTime = new Date(Date.now() + 24 * 60 * 60 * 1000); // +24 hours
+  private async updateNextRunTime(scheduleId: number, cronExpression?: string) {
+    let nextRunTime: Date;
+    
+    if (cronExpression) {
+      // Calculate next run time using cron expression
+      const calculatedNextRun = calculateNextRun(cronExpression);
+      nextRunTime = calculatedNextRun || new Date(Date.now() + 24 * 60 * 60 * 1000); // Fallback to 24 hours
+    } else {
+      // No cron expression, default to 24 hours
+      nextRunTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
     
     await this.sequelize.query(`
       UPDATE schedules
@@ -137,5 +146,7 @@ export class ScheduleManager {
     `, {
       replacements: { nextRunTime, scheduleId }
     });
+    
+    logger.info(`Updated schedule ${scheduleId} - next run: ${nextRunTime.toLocaleString()}`);
   }
 }
